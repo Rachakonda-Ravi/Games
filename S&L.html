@@ -3,365 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Snakes & Ladders - Updated Board UI</title>
+    <title>🐍 Snakes & Ladders</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { 
-            font-family: 'Segoe UI', Tahoma, sans-serif; 
-            text-align: center; 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-            color: white; 
-            min-height: 100vh; 
-            padding: 20px; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
+            min-height: 100vh;
+            padding: 20px;
+            text-align: center;
         }
-        h1 { margin-bottom: 10px; font-size: 2.5em; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
-        #status { font-size: 1.5em; margin: 20px 0; font-weight: bold; }
-        #gameContainer { 
-            position: relative; 
-            width: min(90vw, 500px); 
-            height: min(90vw, 500px); 
-            max-width: 500px; 
-            max-height: 500px; 
-            margin: 20px auto; 
+        h1 {
+            color: white;
+            font-size: clamp(2rem, 6vw, 3rem);
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
-        #board { 
-            display: grid; 
-            grid-template-columns: repeat(10, 1fr); 
-            grid-template-rows: repeat(10, 1fr); 
-            width: 100%; 
-            height: 100%; 
-            border: 4px solid #fff; 
-            border-radius: 15px; 
-            box-shadow: 0 15px 40px rgba(0,0,0,0.4); 
-            padding: 12px; /* Updated for better spacing */
-            gap: 4px; /* Updated gap */
-            background: rgba(0,0,0,0.2); 
-            z-index: 1; 
+        #game-container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
         }
-        #svgOverlay { 
-            position: absolute; 
-            top: 12px; left: 12px; 
-            width: calc(100% - 24px); 
-            height: calc(100% - 24px); 
-            pointer-events: none; 
-            z-index: 2; 
+        #board {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 2px;
+            background: #333;
+            padding: 10px;
+            border-radius: 10px;
+            margin: 20px 0;
+            aspect-ratio: 1;
         }
-        .cell { 
-            border: 2px solid rgba(255,255,255,0.4); 
-            position: relative; 
-            font-size: clamp(9px, 2.5vw, 14px); 
-            font-weight: bold; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            background: rgba(255,255,255,0.15); /* Subtle base */
-            transition: all 0.4s ease; 
-            cursor: pointer; 
-            border-radius: 6px; 
+        .cell {
+            background: #fff;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.8rem;
         }
-        .cell:hover { 
-            background: rgba(255,255,255,0.4); 
-            transform: scale(1.08); 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3); 
+        .snake { background: #ff4444; color: white; }
+        .ladder { background: #44ff44; color: #000; }
+        .current { background: gold !important; animation: pulse 1s infinite; }
+        @keyframes pulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.1);} }
+        #controls {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 20px 0;
         }
-        .snake-start { 
-            background: linear-gradient(45deg, #ff4757, #ff6b7a) !important; /* Match image red */
-            border-color: #ff4757 !important; 
-            box-shadow: 0 0 12px rgba(255,71,87,0.6); 
+        button {
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
-        .snake-end { 
-            background: rgba(255,71,87,0.3) !important; 
-            border-color: #ff6b7a !important; 
+        #rollBtn { background: #ff6b6b; color: white; }
+        #rollBtn:hover { background: #ff5252; transform: translateY(-3px); }
+        #dice { 
+            font-size: 3rem; 
+            margin: 20px 0;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .ladder-start { 
-            background: linear-gradient(45deg, #2ed573, #7bed9f) !important; /* Match image green */
-            border-color: #2ed573 !important; 
-            box-shadow: 0 0 12px rgba(46,213,115,0.6); 
+        #status {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin: 20px 0;
+            min-height: 30px;
         }
-        .ladder-end { 
-            background: rgba(46,213,115,0.3) !important; 
-            border-color: #7bed9f !important; 
-        }
-        .player1 { 
-            background: radial-gradient(circle, #ff6b9d, #ff4757) !important; 
-            border-radius: 50%; 
-            width: 70px; height: 70px; /* Slightly smaller */
-            margin: auto; 
-            box-shadow: 0 0 20px rgba(255,107,157,1), inset 0 2px 4px rgba(255,255,255,0.3); 
-            animation: bounce 0.7s cubic-bezier(0.68, -0.55, 0.265, 1.55); 
-            border: 4px solid #fff; 
-            z-index: 3; 
-        }
-        .player2 { 
-            background: radial-gradient(circle, #4ecdc4, #26de81) !important; 
-            border-radius: 50%; 
-            width: 70px; height: 70px; 
-            margin: auto; 
-            box-shadow: 0 0 20px rgba(78,205,196,1), inset 0 2px 4px rgba(255,255,255,0.3); 
-            animation: bounce 0.7s cubic-bezier(0.68, -0.55, 0.265, 1.55); 
-            border: 4px solid #fff; 
-            z-index: 3; 
-        }
-        @keyframes bounce { 
-            0% { transform: scale(0) rotate(-360deg); } 
-            80% { transform: scale(1.15) rotate(10deg); } 
-            100% { transform: scale(1) rotate(0); } 
-        }
-        #rollBtn { 
-            background: linear-gradient(135deg, #ff9ff3, #f368e0); 
-            border: none; 
-            padding: 18px 40px; 
-            font-size: 1.3em; 
-            border-radius: 50px; 
-            cursor: pointer; 
-            transition: all 0.3s; 
-            box-shadow: 0 8px 20px rgba(0,0,0,0.3); 
-            color: white; 
-            font-weight: bold; 
-            min-width: 200px; 
-        }
-        #rollBtn:hover:not(:disabled) { 
-            transform: translateY(-3px); 
-            box-shadow: 0 12px 25px rgba(0,0,0,0.4); 
-        }
-        #rollBtn:disabled { 
-            background: #aaa; 
-            cursor: not-allowed; 
-            transform: none; 
-        }
-        #winner { 
-            font-size: 2.5em; 
-            color: gold; 
-            margin-top: 20px; 
-            animation: pulse 1.5s infinite; 
-            text-shadow: 2px 2px 4px black; 
-        }
-        @keyframes pulse { 
-            0%, 100% { transform: scale(1); opacity: 1; } 
-            50% { transform: scale(1.1); opacity: 0.8; } 
-        }
-        @media (max-width: 600px) { 
-            #gameContainer { width: 95vw; height: 95vw; } 
-            body { padding: 10px; } 
-        }
-        @keyframes glow { 
-            0% { filter: drop-shadow(0 0 4px rgba(255,255,255,0.5)); } 
-            100% { filter: drop-shadow(0 0 8px rgba(255,255,255,0.8)); } 
-        }
+        .winner { color: gold; font-size: 2rem; animation: celebrate 0.5s infinite; }
+        @keyframes celebrate { 0%,100%{transform:scale(1);} 50%{transform:scale(1.1);} }
     </style>
 </head>
 <body>
-    <h1>Snakes & Ladders</h1>
-    <div id="status">Click "Roll Dice" to start! Player 1's turn!</div>
-    <div id="gameContainer">
+    <h1>🐍 Snakes & Ladders</h1>
+    
+    <div id="game-container">
+        <div id="status">Player 1's Turn - Click Roll Dice! 🎲</div>
+        
+        <div id="dice">?</div>
+        
         <div id="board"></div>
-        <svg id="svgOverlay" viewBox="0 0 100 100"></svg>
+        
+        <div id="controls">
+            <button id="rollBtn" onclick="rollDice()">🎲 Roll Dice</button>
+            <button onclick="resetGame()" style="background:#4ecdc4;color:white;">🔄 New Game</button>
+        </div>
+        
+        <div id="winnerMsg" style="display:none;"></div>
     </div>
-    <button id="rollBtn" onclick="rollDice()">Roll Dice</button>
-    <div id="winner" style="display: none;"></div>
 
-    <script>
-        const BOARDSIZE = 100;
-        // Updated positions to match common standard/image.jpg layout
-        const SNAKES = {
-            16: 6, 47: 26, 49: 11, 56: 53, 62: 19, 64: 60,
-            87: 24, 93: 73, 95: 75, 98: 78
-        };
-        const LADDERS = {
-            1: 38, 4: 14, 9: 31, 21: 42, 28: 84, 36: 44,
-            51: 67, 71: 91, 80: 100
-        };
-        let positions = [0, 0];
-        let currentPlayer = 0;
-        let gameOver = false;
-        const boardCells = {};
-        const svg = document.getElementById('svgOverlay');
-
-        function posToBox(pos) {
-            const row = Math.floor((100 - pos) / 10);
-            const idxInRow = (pos - 1) % 10;
-            const col = (row % 2 === 0) ? idxInRow : 9 - idxInRow;
-            return {
-                row, col,
-                x1: col, y1: row,
-                x2: col + 1, y2: row + 1
-            };
-        }
-
-        function drawConnection(from, to, isSnake) {
-            const fromBox = posToBox(from);
-            const toBox = posToBox(to);
-            // Connect cell centers
-            const midFromX = fromBox.x1 + 0.5;
-            const midFromY = fromBox.y1 + 0.5;
-            const midToX = toBox.x1 + 0.5;
-            const midToY = toBox.y1 + 0.5;
-
-            const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-            group.className = isSnake ? 'snake-path' : 'ladder-path';
-
-            if (isSnake) {
-                // Wavy snake path
-                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                const dx = (midToX - midFromX) / 4;
-                const dy = (midToY - midFromY) / 4;
-                let d = `M ${midFromX} ${midFromY}`;
-                for (let i = 0; i < 4; i++) {
-                    const ctrlX1 = midFromX + dx * i;
-                    const ctrlY1 = midFromY + dy * i + (i % 2 ? -0.25 : 0.25);
-                    const ctrlX2 = midFromX + dx * (i + 0.5);
-                    const ctrlY2 = midFromY + dy * (i + 0.5) + (i % 2 ? 0.25 : -0.25);
-                    const endX = midFromX + dx * (i + 1);
-                    const endY = midFromY + dy * (i + 1);
-                    d += ` C ${ctrlX1} ${ctrlY1}, ${ctrlX2} ${ctrlY2}, ${endX} ${endY}`;
-                }
-                path.setAttribute('d', d);
-                path.setAttribute('fill', 'none');
-                path.setAttribute('stroke', '#ff4757');
-                path.setAttribute('stroke-width', '0.6');
-                path.setAttribute('stroke-linecap', 'round');
-                path.setAttribute('stroke-linejoin', 'round');
-                path.style.filter = 'drop-shadow(0 2px 4px rgba(255,71,87,0.8))';
-                path.style.animation = 'glow 2s infinite alternate';
-                group.appendChild(path);
-
-                // Snake head
-                const head = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-                head.setAttribute('points', `${midToX-0.15},${midToY-0.1} ${midToX+0.15},${midToY-0.1} ${midToX},${midToY+0.15}`);
-                head.setAttribute('fill', '#ff4757');
-                head.style.filter = 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))';
-                group.appendChild(head);
-            } else {
-                // Ladder rungs & rails
-                const steps = Math.abs(Math.floor(Math.max(Math.abs(midToX - midFromX), Math.abs(midToY - midFromY))));
-                for (let i = 0; i <= steps; i++) {
-                    const t = i / steps;
-                    const rungX = midFromX + t * (midToX - midFromX);
-                    const rungY = midFromY + t * (midToY - midFromY);
-                    const rung = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                    rung.setAttribute('x1', rungX - 0.2);
-                    rung.setAttribute('y1', rungY);
-                    rung.setAttribute('x2', rungX + 0.2);
-                    rung.setAttribute('y2', rungY);
-                    rung.setAttribute('stroke', '#2ed573');
-                    rung.setAttribute('stroke-width', '0.25');
-                    rung.style.filter = 'drop-shadow(0 1px 2px rgba(46,213,115,0.6))';
-                    group.appendChild(rung);
-                }
-                // Side rails
-                const rail1 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                rail1.setAttribute('d', `M ${midFromX-0.15} ${midFromY} L ${midToX-0.15} ${midToY}`);
-                rail1.setAttribute('stroke', '#7bed9f');
-                rail1.setAttribute('stroke-width', '0.2');
-                rail1.setAttribute('stroke-linecap', 'round');
-                rail1.setAttribute('fill', 'none');
-                group.appendChild(rail1);
-                const rail2 = rail1.cloneNode(true);
-                rail2.setAttribute('stroke', '#53f777');
-                rail2.setAttribute('stroke-dasharray', '0.3,0.6');
-                rail2.setAttribute('stroke-width', '0.18');
-                group.appendChild(rail2);
-            }
-            svg.appendChild(group);
-        }
-
-        function initBoard() {
-            const board = document.getElementById('board');
-            board.innerHTML = '';
-            svg.innerHTML = '';
-            for (let i = 100; i >= 1; i--) {
-                const cell = document.createElement('div');
-                cell.className = 'cell';
-                cell.textContent = i;
-                cell.dataset.pos = i;
-                boardCells[i] = cell;
-                board.appendChild(cell);
-            }
-            // Draw connections
-            Object.entries(SNAKES).forEach(([fromStr, to]) => {
-                const from = parseInt(fromStr);
-                drawConnection(from, to, true);
-                boardCells[from].classList.add('snake-start');
-                boardCells[to].classList.add('snake-end');
-            });
-            Object.entries(LADDERS).forEach(([fromStr, to]) => {
-                const from = parseInt(fromStr);
-                drawConnection(from, to, false);
-                boardCells[from].classList.add('ladder-start');
-                boardCells[to].classList.add('ladder-end');
-            });
-            updatePositions();
-        }
-
-        function getFinalPos(pos) {
-            return SNAKES[pos] || LADDERS[pos] || pos;
-        }
-
-        function updatePositions() {
-            Object.values(boardCells).forEach(cell => {
-                cell.classList.remove('player1', 'player2');
-            });
-            positions.forEach((pos, p) => {
-                if (pos > 0) {
-                    boardCells[pos].classList.add(`player${p + 1}`);
-                }
-            });
-        }
-
-        function rollDice() {
-            if (gameOver) return;
-            const roll = Math.floor(Math.random() * 6) + 1;
-            const status = document.getElementById('status');
-            const btn = document.getElementById('rollBtn');
-            btn.disabled = true;
-            status.innerHTML = `Player ${currentPlayer + 1} rolled <strong>${roll}</strong>! Moving...`;
-
-            setTimeout(() => {
-                const newPos = Math.min(BOARDSIZE, positions[currentPlayer] + roll);
-                const finalPos = getFinalPos(newPos);
-                positions[currentPlayer] = finalPos;
-                updatePositions();
-
-                let moveText = '';
-                if (newPos !== finalPos) {
-                    moveText = finalPos < newPos ?
-                        `<span style="color:#ff4757"> Snake!</span>` :
-                        `<span style="color:#2ed573"> Ladder!</span>`;
-                }
-                const nextPlayer = currentPlayer === 0 ? 1 : 0;
-                status.innerHTML = `Player ${currentPlayer + 1} now at <strong>${finalPos}</strong> ${moveText}<br>Player ${nextPlayer + 1}'s turn!`;
-                currentPlayer = nextPlayer;
-
-                if (finalPos >= BOARDSIZE) {
-                    status.innerHTML = `<strong>Player ${currentPlayer === 0 ? 1 : 2} Wins!</strong>`;
-                    document.getElementById('winner').textContent = `Player ${currentPlayer === 0 ? 1 : 2} Wins!`;
-                    document.getElementById('winner').style.display = 'block';
-                    gameOver = true;
-                    btn.style.display = 'none';
-                    return;
-                }
-                btn.disabled = false;
-            }, 1500);
-        }
-
-        // Add glow animation if not exists
-        if (!document.querySelector('style[data-glow]')) {
-            const style = document.createElement('style');
-            style.textContent = `
-                @keyframes glow {
-                    0% { filter: drop-shadow(0 0 4px rgba(255,255,255,0.5)); }
-                    100% { filter: drop-shadow(0 0 8px rgba(255,255,255,0.8)); }
-                }
-            `;
-            style.setAttribute('data-glow', 'true');
-            document.head.appendChild(style);
-        }
-
-        initBoard();
-    </script>
+    <!-- ✅ External JS File -->
+    <script src="SnL-game.js"></script>
 </body>
 </html>
