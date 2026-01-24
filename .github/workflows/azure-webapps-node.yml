@@ -26,18 +26,18 @@ jobs:
         node-version: '20'
         cache: 'npm'
 
-   - name: Simple Install & Deploy
-  run: |
-    npm install --no-save || echo "No package.json - static files only"
-    # Deploy root folder directly
+    - name: 🔧 Install & Prepare
+      run: |
+        npm install --no-save || echo "No package.json - static files only"
+        npm run build --if-present || echo "Serving root folder"
 
     - name: 📂 Setup Pages
       uses: actions/configure-pages@v5
 
-    - name: 📱 Upload Artifact  
+    - name: 📱 Upload Artifact
       uses: actions/upload-pages-artifact@v3
       with:
-        path: './dist || ./build || .'  # Tries common build folders or root
+        path: .  # Deploy ENTIRE root folder (works for static files)
 
     - name: 🚀 Deploy to GitHub Pages
       id: deployment
