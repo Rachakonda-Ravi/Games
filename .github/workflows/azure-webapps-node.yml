@@ -20,27 +20,31 @@ jobs:
     - name: 📥 Checkout
       uses: actions/checkout@v4
 
-    - name: 🛠️ Setup Node.js
+    # ✅ FIXED: Skip Node/npm if no package.json (pure static)
+    - name: 🛠️ Setup Node.js (if needed)
+      if: hashFiles('**/package.json') != ''
       uses: actions/setup-node@v4
       with:
         node-version: '20'
         cache: 'npm'
-        cache-dependency-path: package.json  # Fix: use package.json if no lockfile
 
-    - name: 🔧 Install & Prepare
+    - name: 🔧 Install & Build (if needed)
+      if: hashFiles('**/package.json') != ''
       run: |
-        if [ -f package.json ]; then
-          npm ci  # Use ci for clean install
-          npm run build --if-present || echo "No build script"
-        fi
+        npm ci
+        npm run build --if-present || echo "No build script"
 
     - name: 📂 Setup Pages
       uses: actions/configure-pages@v5
 
-    - name: 📋 List files  # Debug: See what's in repo
-      run: find . -name "*.html" -o -name "*.js" -o -name "*.css" | head -20 || echo "No web files found"
+    - name: 📋 Debug: List files
+      run: |
+        echo "📁 Root contents:"
+        ls -la
+        echo "🌐 Web files:"
+        find . -name "*.html" -o -name "*.js" -o -name "*.css" | head -10 || echo "❌ No web files!"
 
-    - name: 📱 Upload Artifact
+    - name: 📱 Upload Artifact (ROOT = index.html + games)
       uses: actions/upload-pages-artifact@v3
       with:
         path: .
