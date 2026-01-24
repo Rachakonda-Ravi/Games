@@ -1,0 +1,54 @@
+name: 🚀 Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+    - name: 📥 Checkout
+      uses: actions/checkout@v4
+
+    # Skip Node for pure static (no package.json)
+    - name: 🛠️ Setup Node.js
+      if: hashFiles('**/package.json') != ''
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: 🔧 Install & Build
+      if: hashFiles('**/package.json') != ''
+      run: |
+        npm ci
+        npm run build --if-present || echo "No build"
+
+    - name: 📂 Setup Pages
+      uses: actions/configure-pages@v5
+
+    - name: 📋 Debug files
+      run: |
+        echo "Root:"
+        ls -la
+        echo "HTML/JS/CSS:"
+        find . \( -name "*.html" -o -name "*.js" -o -name "*.css" \) | head -10
+
+    - name: 📱 Upload Artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: .
+
+    - name: 🚀 Deploy
+      id: deployment
+      uses: actions/deploy-pages@v4
