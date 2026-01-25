@@ -183,11 +183,11 @@
         .grid-card { padding: 1.5rem; }
         #grid {
             display: grid;
-            grid-template-columns: repeat(15, 1fr);
-            grid-template-rows: repeat(6, 1fr);
-            gap: 0.6rem;
+            grid-template-columns: repeat(10, 1fr);
+            grid-template-rows: repeat(9, 1fr);
+            gap: 0.8rem;
             padding: 1.5rem;
-            max-height: 80vh;
+            max-height: 85vh;
         }
 
         .cell {
@@ -467,144 +467,71 @@
             initVoiceSystem();
             updateRepeatDisplay();
         }
-
-        // 🔊 FIXED VOICE SYSTEM
-       function initVoiceSystem() {
-            if (!('speechSynthesis' in window)) {
-                document.getElementById('voiceInfo').textContent = 'SpeechSynthesis not supported';
-                return;
-            }
-        
-            // 🆕 UNIVERSAL VOICE PRIORITY (works on Chrome/Safari/Edge/Firefox)
-            const universalVoices = [
-                // English US (most reliable across browsers)
-                { nameMatch: 'Zira', lang: 'en-US' },
-                { nameMatch: 'Microsoft', lang: 'en-US' },
-                { nameMatch: 'Google US English', lang: 'en-US' },
-                { nameMatch: 'David', lang: 'en-US' },
-                
-                // English UK (universal fallback)
-                { nameMatch: 'Samantha', lang: 'en-GB' },
-                { nameMatch: 'Serena', lang: 'en-GB' },
-                { nameMatch: 'Daniel', lang: 'en-GB' },
-                
-                // Fallback: Any en-US/en-GB
-                { langFallback: 'en-US' },
-                { langFallback: 'en-GB' }
-            ];
-        
-            function populateVoices() {
-                voicesList = speechSynthesis.getVoices();
-                const dropdown = document.getElementById('voiceList');
-                dropdown.innerHTML = '<option value="-1">🎤 Auto (Universal)</option>';
-                
-                if (voicesList.length === 0) {
-                    document.getElementById('voiceInfo').textContent = 'No voices detected';
-                    return;
-                }
-        
-                console.log(`🎤 Found ${voicesList.length} voices, prioritizing universal:`);
-        
-                let universalCount = 0;
-                voicesList.forEach((voice, index) => {
-                    // Check if universal
-                    const isUniversal = universalVoices.some(uv => 
-                        (uv.nameMatch && voice.name.includes(uv.nameMatch)) ||
-                        (uv.langFallback && voice.lang === uv.langFallback)
-                    );
-                    
-                    if (isUniversal) {
-                        const option = document.createElement('option');
-                        option.value = index;
-                        option.textContent = `⭐ ${voice.name} (${voice.lang})`;
-                        dropdown.appendChild(option);
-                        universalCount++;
-                        console.log(`  ⭐ ${index}: "${voice.name}" (${voice.lang})`);
-                    }
-                });
-        
-                // Add remaining English voices if needed
-                if (universalCount < 10) {
-                    voicesList.filter(voice => 
-                        voice.lang.startsWith('en-') && 
-                        !Array.from(dropdown.options).some(opt => opt.text.includes(voice.name))
-                    ).slice(0, 10).forEach((voice, i) => {
-                        const option = document.createElement('option');
-                        option.value = voicesList.indexOf(voice);
-                        option.textContent = `  ${voice.name} (${voice.lang})`;
-                        dropdown.appendChild(option);
-                    });
-                }
-        
-                document.getElementById('voiceInfo').textContent = 
-                    `⭐ ${universalCount} universal voices (${voicesList.length} total)`;
-        
-                // Auto-select first universal voice
-                const firstUniversal = dropdown.querySelector('option[style*="⭐"]');
-                if (firstUniversal) {
-                    dropdown.value = firstUniversal.value;
-                    currentVoice = parseInt(firstUniversal.value);
-                }
-            }
-        
-            populateVoices();
-            speechSynthesis.onvoiceschanged = populateVoices;
-        }
-
-
-        // 🎤 Voice selection handler
-        function selectVoice(voiceIndex) {
-            currentVoice = parseInt(voiceIndex);
-            localStorage.setItem('tambolaVoice', currentVoice);
-            console.log(`Selected voice index: ${currentVoice}, Name: ${voicesList[currentVoice]?.name || 'Default'}`);
-        }
-
-        function resetNumbers() {
-            numbers = Array.from({length: 90}, (_, i) => i + 1);
-            drawnNumbers = [];
-        }
-
         function buildGrid() {
-            const grid = document.getElementById('grid');
-            grid.innerHTML = '';
-            
-            for (let i = 1; i <= 90; i++) {
-                const cell = document.createElement('div');
-                cell.className = 'cell';
-                cell.id = `cell-${i}`;
-                cell.textContent = i;
-                cell.title = `Click to call ${i}`;
-                cell.onclick = () => calloutNumber(i);
-                grid.appendChild(cell);
+                const grid = document.getElementById('grid');
+                grid.innerHTML = '';
+                for (let i = 1; i <= 90; i++) {
+                    const cell = document.createElement('div');
+                    cell.className = `cell ${i<=9 ? 'col1-9' : i>=80 ? 'col8-10' : ''}`;
+                    cell.id = `cell-${i}`;
+                    cell.textContent = i;
+                    cell.setAttribute('role', 'button');
+                    cell.setAttribute('aria-label', `Number ${i}`);
+                    cell.onclick = () => calloutNumber(i);
+                    grid.appendChild(cell);
+                }
             }
-        }
 
-        function drawNumber() {
-            if (numbers.length === 0) {
-                showCelebration('🎉 GAME COMPLETE!');
-                return;
+        // Universal + Categorized Voices
+        function initVoiceSystem() {
+                if (!('speechSynthesis' in window)) return;
+                function populateVoices() {
+                    voicesList = speechSynthesis.getVoices();
+                    const dropdown = document.getElementById('voiceList');
+                    dropdown.innerHTML = '<option value="-1">🎤 Auto Universal</option>';
+                    const universal = [
+                        {nameMatch: 'Zira|Microsoft|Google US English|David', prefix: '⭐'},
+                        {nameMatch: 'Samantha|Serena|Daniel', prefix: '🇬🇧'}
+                    ];
+                    let count = 0;
+                    voicesList.forEach((voice, i) => {
+                        if (voice.lang.startsWith('en-')) {
+                            const prefix = universal.some(u => voice.name.match(new RegExp(u.nameMatch))) ? '⭐ ' : '  ';
+                            const opt = new Option(`${prefix}${voice.name} (${voice.lang})`, i);
+                            dropdown.appendChild(opt);
+                            count++;
+                        }
+                    });
+                    document.getElementById('voiceInfo').textContent = `${count} voices (${universal.length} priority)`;
+                }
+                populateVoices();
+                speechSynthesis.onvoiceschanged = populateVoices;
             }
             
-            const randomIdx = Math.floor(Math.random() * numbers.length);
-            const number = numbers.splice(randomIdx, 1)[0];
-            drawnNumbers.push(number);
-            
-            const cell = document.getElementById(`cell-${number}`);
-            if (cell) {
-                cell.style.animation = 'none';
-                setTimeout(() => cell.style.animation = 'celebrate 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55)', 10);
-                cell.classList.add('drawn');
+            // Detailed Speech: Digits + Words
+            const words = {1:'one',2:'two',3:'three',4:'four',5:'five',6:'six',7:'seven',8:'eight',9:'nine',10:'ten',
+                11:'eleven',12:'twelve',13:'thirteen',14:'fourteen',15:'fifteen',16:'sixteen',17:'seventeen',18:'eighteen',19:'nineteen',
+                20:'twenty',30:'thirty',40:'forty',50:'fifty',60:'sixty',70:'seventy',80:'eighty',90:'ninety'};
+            function numberToWords(n) {
+                if (words[n]) return words[n];
+                return `${words[Math.floor(n/10)*10] || ''} ${words[n%10]}`.trim();
             }
-            
-            updateAllDisplays();
-            addLogEntry(number);
-            
-            if (voiceActive) {
-                calloutNumber(number);
-            } else {
-                showCelebration(number);
+            function calloutNumber(n) {
+                if (!voiceActive) { showCelebration(n); return; }
+                const digits = n.toString().split('').map(Number).map(numberToWords).join(', ');
+                const callText = `${digits}, ${numberToWords(n)}`;
+                speechSynthesis.cancel();
+                for (let i = 0; i < repeatCount; i++) {
+                    setTimeout(() => {
+                        const ut = new SpeechSynthesisUtterance(callText);
+                        ut.volume = currentVolume; ut.rate = i ? 0.9 : 0.7; ut.pitch = 1.0;
+                        if (currentVoice >= 0) ut.voice = voicesList[currentVoice];
+                        speechSynthesis.speak(ut);
+                    }, i * 1300);
+                }
+                showCelebration(n);
             }
-        }
+
 
         function updateRepeatCount(value) {
             repeatCount = parseInt(value);
@@ -751,7 +678,23 @@ function calloutNumber(n) {
         document.addEventListener('DOMContentLoaded', () => {
             initTambola();
         });
-
+        function drawNumber() {
+            // Existing + 
+            if (numbers.length === 0) {
+                showCelebration('🏆 FULL HOUSE! 🎉');
+                // Simple confetti (no lib)
+                for (let i=0; i<50; i++) {
+                    setTimeout(() => {
+                        const conf = document.createElement('div');
+                        conf.style.cssText = `position:fixed;top:0;left:${Math.random()*100}vw;width:10px;height:10px;background:#f093fb;border-radius:50%;pointer-events:none;animation:fall 3s linear infinite;`;
+                        document.body.appendChild(conf);
+                        setTimeout(() => conf.remove(), 3000);
+                    }, i*20);
+                }
+                return;
+            }
+            // Rest existing
+        }
         document.addEventListener('keydown', e => {
             if (e.code === 'Space') {
                 e.preventDefault();
@@ -761,5 +704,6 @@ function calloutNumber(n) {
     </script>
 </body>
 </html>
+
 
 
