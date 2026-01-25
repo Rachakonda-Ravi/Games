@@ -49,7 +49,13 @@
             max-width: 1500px;
             margin: 0 auto;
         }
+        .voice-stats {
+            font-size: 0.8rem; color: var(--accent); 
+            text-align: center; margin-top: 0.3rem; 
+            font-weight: 500; 
+        }
 
+        
         @media (max-width: 1300px) { .layout { grid-template-columns: 1fr; } }
 
         .sidebar { 
@@ -431,6 +437,8 @@
                 </div>
                 <input type="range" id="volumeRange" min="0" max="1" value="0.8" step="0.1" onchange="updateVolume(this.value)">
                 <select id="voiceList" onchange="selectVoice(this.value)" style="margin-top:0.6rem;"></select>
+                <div id="voiceInfo" class="voice-stats" style="font-size:0.8rem;color:var(--accent);text-align:center;margin-top:0.3rem;font-weight:500;">Loading voices...</div>
+
             </div>
             
             <div class="card">
@@ -609,14 +617,14 @@
             display.textContent = `${repeatCount} TIME${repeatCount > 1 ? 'S' : ''}`;
         }
 
-        // 🗣️ FIXED VOICE CALL OUT
-       function calloutNumber(n) {
+        // 🗣️ UNIVERSAL VOICE CALL-OUT (Fixed & Optimized)
+function calloutNumber(n) {
             if (!voiceActive || !('speechSynthesis' in window)) { 
                 showCelebration(n); 
                 return; 
             }
             
-            // Number-to-word mapping (English words for clarity)
+            // Number-to-word mapping
             const words = {
                 0: 'zero', 1: 'one', 2: 'two', 3: 'three', 4: 'four', 5: 'five',
                 6: 'six', 7: 'seven', 8: 'eight', 9: 'nine', 10: 'ten', 11: 'eleven',
@@ -628,11 +636,9 @@
             
             function numberToWords(num) {
                 if (words[num] !== undefined) return words[num];
-                if (num < 20) return words[num];
                 const tens = Math.floor(num / 10) * 10;
                 const ones = num % 10;
-                if (ones === 0) return words[tens];
-                return words[tens] + ' ' + words[ones];
+                return ones === 0 ? words[tens] : `${words[tens]} ${words[ones]}`;
             }
             
             let callText;
@@ -640,48 +646,30 @@
                 callText = `Single number ${numberToWords(n)}`;
             } else {
                 const digits = n.toString().split('').map(Number);
-                const digitWords = digits.map(d => numberToWords(d)).join(', ');
+                const digitWords = digits.map(numberToWords).join(', ');
                 callText = `${digitWords} ${numberToWords(n)}`;
             }
+            
+            console.log(`Calling: "${callText}" (${currentVoice}: ${voicesList[currentVoice]?.name || 'default'})`);
             
             speechSynthesis.cancel();
             for (let i = 0; i < repeatCount; i++) {
                 setTimeout(() => {
                     const utterance = new SpeechSynthesisUtterance(callText);
                     utterance.volume = currentVolume;
-                    utterance.rate = i === 0 ? 0.7 : 0.9;
+                    utterance.rate = i === 0 ? 0.7 : 0.9;  // Slower first time
+                    utterance.pitch = 1.0;
+                    
                     if (currentVoice >= 0 && currentVoice < voicesList.length) {
                         utterance.voice = voicesList[currentVoice];
                     }
+                    
                     speechSynthesis.speak(utterance);
                 }, i * 1300);
             }
             showCelebration(n);
         }
 
-            
-            // Clear any pending speech
-            speechSynthesis.cancel();
-            
-            for (let i = 0; i < repeatCount; i++) {
-                setTimeout(() => {
-                    const utterance = new SpeechSynthesisUtterance(`Number ${n}`);
-                    utterance.volume = currentVolume;
-                    utterance.rate = i === 0 ? 0.7 : 0.9;
-                    
-                    // ✅ FIXED: Proper voice assignment with validation
-                    if (currentVoice >= 0 && currentVoice < voicesList.length) {
-                        const selectedVoice = voicesList[currentVoice];
-                        utterance.voice = selectedVoice;
-                        console.log(`Using voice: ${selectedVoice.name}`);
-                    }
-                    
-                    speechSynthesis.speak(utterance);
-                }, i * 1300);
-            }
-            
-            showCelebration(n);
-        }
 
         function showCelebration(content) {
             const latest = document.getElementById('latest');
@@ -773,4 +761,5 @@
     </script>
 </body>
 </html>
+
 
