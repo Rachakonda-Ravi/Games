@@ -461,58 +461,88 @@
         }
 
         // 🔊 FIXED VOICE SYSTEM
-        function initVoiceSystem() {
+       function initVoiceSystem() {
             if (!('speechSynthesis' in window)) {
-                console.log('Speech Synthesis not supported');
+                document.getElementById('voiceInfo').textContent = 'SpeechSynthesis not supported';
                 return;
             }
-
-            // Load voices immediately AND on change
+        
+            // 🆕 UNIVERSAL VOICE PRIORITY (works on Chrome/Safari/Edge/Firefox)
+            const universalVoices = [
+                // English US (most reliable across browsers)
+                { nameMatch: 'Zira', lang: 'en-US' },
+                { nameMatch: 'Microsoft', lang: 'en-US' },
+                { nameMatch: 'Google US English', lang: 'en-US' },
+                { nameMatch: 'David', lang: 'en-US' },
+                
+                // English UK (universal fallback)
+                { nameMatch: 'Samantha', lang: 'en-GB' },
+                { nameMatch: 'Serena', lang: 'en-GB' },
+                { nameMatch: 'Daniel', lang: 'en-GB' },
+                
+                // Fallback: Any en-US/en-GB
+                { langFallback: 'en-US' },
+                { langFallback: 'en-GB' }
+            ];
+        
             function populateVoices() {
                 voicesList = speechSynthesis.getVoices();
-                console.log(`Loaded ${voicesList.length} voices`);
-                
                 const dropdown = document.getElementById('voiceList');
-                dropdown.innerHTML = '<option value="-1">🎤 Default Voice</option>';
+                dropdown.innerHTML = '<option value="-1">🎤 Auto (Universal)</option>';
                 
                 if (voicesList.length === 0) {
-                    dropdown.innerHTML += '<option value="-1" disabled>No voices available</option>';
+                    document.getElementById('voiceInfo').textContent = 'No voices detected';
                     return;
                 }
-
-                // Filter and sort voices (English + Premium first)
-                const englishVoices = voicesList.filter(v => 
-                    v.lang.startsWith('en') || 
-                    v.name.includes('Microsoft') || 
-                    v.name.includes('Google') ||
-                    v.name.includes('Samantha') ||
-                    v.name.includes('Zira')
-                ).sort((a, b) => {
-                    // Premium voices first
-                    const premiumA = a.name.includes('Microsoft') || a.name.includes('Google');
-                    const premiumB = b.name.includes('Microsoft') || b.name.includes('Google');
-                    return premiumB - premiumA;
+        
+                console.log(`🎤 Found ${voicesList.length} voices, prioritizing universal:`);
+        
+                let universalCount = 0;
+                voicesList.forEach((voice, index) => {
+                    // Check if universal
+                    const isUniversal = universalVoices.some(uv => 
+                        (uv.nameMatch && voice.name.includes(uv.nameMatch)) ||
+                        (uv.langFallback && voice.lang === uv.langFallback)
+                    );
+                    
+                    if (isUniversal) {
+                        const option = document.createElement('option');
+                        option.value = index;
+                        option.textContent = `⭐ ${voice.name} (${voice.lang})`;
+                        dropdown.appendChild(option);
+                        universalCount++;
+                        console.log(`  ⭐ ${index}: "${voice.name}" (${voice.lang})`);
+                    }
                 });
-
-                englishVoices.slice(0, 25).forEach((voice, index) => {
-                    const option = document.createElement('option');
-                    option.value = voicesList.indexOf(voice);
-                    option.textContent = `${voice.name} (${voice.lang})`;
-                    dropdown.appendChild(option);
-                });
-
-                // Restore saved voice
-                const savedVoice = localStorage.getItem('tambolaVoice');
-                if (savedVoice && voicesList[parseInt(savedVoice)]) {
-                    dropdown.value = savedVoice;
-                    currentVoice = parseInt(savedVoice);
+        
+                // Add remaining English voices if needed
+                if (universalCount < 10) {
+                    voicesList.filter(voice => 
+                        voice.lang.startsWith('en-') && 
+                        !Array.from(dropdown.options).some(opt => opt.text.includes(voice.name))
+                    ).slice(0, 10).forEach((voice, i) => {
+                        const option = document.createElement('option');
+                        option.value = voicesList.indexOf(voice);
+                        option.textContent = `  ${voice.name} (${voice.lang})`;
+                        dropdown.appendChild(option);
+                    });
+                }
+        
+                document.getElementById('voiceInfo').textContent = 
+                    `⭐ ${universalCount} universal voices (${voicesList.length} total)`;
+        
+                // Auto-select first universal voice
+                const firstUniversal = dropdown.querySelector('option[style*="⭐"]');
+                if (firstUniversal) {
+                    dropdown.value = firstUniversal.value;
+                    currentVoice = parseInt(firstUniversal.value);
                 }
             }
-
-            // Try immediate load, then wait for voiceschanged
+        
             populateVoices();
             speechSynthesis.onvoiceschanged = populateVoices;
         }
+
 
         // 🎤 Voice selection handler
         function selectVoice(voiceIndex) {
@@ -580,11 +610,55 @@
         }
 
         // 🗣️ FIXED VOICE CALL OUT
-        function calloutNumber(n) {
-            if (!voiceActive || !('speechSynthesis' in window)) {
-                showCelebration(n);
-                return;
+       function calloutNumber(n) {
+            if (!voiceActive || !('speechSynthesis' in window)) { 
+                showCelebration(n); 
+                return; 
             }
+            
+            // Number-to-word mapping (English words for clarity)
+            const words = {
+                0: 'zero', 1: 'one', 2: 'two', 3: 'three', 4: 'four', 5: 'five',
+                6: 'six', 7: 'seven', 8: 'eight', 9: 'nine', 10: 'ten', 11: 'eleven',
+                12: 'twelve', 13: 'thirteen', 14: 'fourteen', 15: 'fifteen', 16: 'sixteen',
+                17: 'seventeen', 18: 'eighteen', 19: 'nineteen', 20: 'twenty',
+                30: 'thirty', 40: 'forty', 50: 'fifty', 60: 'sixty', 70: 'seventy',
+                80: 'eighty', 90: 'ninety'
+            };
+            
+            function numberToWords(num) {
+                if (words[num] !== undefined) return words[num];
+                if (num < 20) return words[num];
+                const tens = Math.floor(num / 10) * 10;
+                const ones = num % 10;
+                if (ones === 0) return words[tens];
+                return words[tens] + ' ' + words[ones];
+            }
+            
+            let callText;
+            if (n <= 9) {
+                callText = `Single number ${numberToWords(n)}`;
+            } else {
+                const digits = n.toString().split('').map(Number);
+                const digitWords = digits.map(d => numberToWords(d)).join(', ');
+                callText = `${digitWords} ${numberToWords(n)}`;
+            }
+            
+            speechSynthesis.cancel();
+            for (let i = 0; i < repeatCount; i++) {
+                setTimeout(() => {
+                    const utterance = new SpeechSynthesisUtterance(callText);
+                    utterance.volume = currentVolume;
+                    utterance.rate = i === 0 ? 0.7 : 0.9;
+                    if (currentVoice >= 0 && currentVoice < voicesList.length) {
+                        utterance.voice = voicesList[currentVoice];
+                    }
+                    speechSynthesis.speak(utterance);
+                }, i * 1300);
+            }
+            showCelebration(n);
+        }
+
             
             // Clear any pending speech
             speechSynthesis.cancel();
@@ -699,3 +773,4 @@
     </script>
 </body>
 </html>
+
