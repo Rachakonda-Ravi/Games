@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎲 Tambola</title>
+    <title>🎲 Tambola Pro</title>
     <style>
         :root {
             --bg-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -39,6 +39,43 @@
             box-shadow: var(--shadow);
             letter-spacing: 1px;
             backdrop-filter: blur(20px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .header-title {
+            flex: 1;
+            text-align: center;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .header-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid white;
+            padding: 0.6rem 1.2rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .header-btn:hover {
+            background: rgba(255,255,255,0.4);
+            transform: translateY(-2px);
         }
 
         .layout {
@@ -46,7 +83,7 @@
             grid-template-columns: 280px 1fr 280px;
             gap: 1.5rem;
             padding: 2rem;
-            max-width: 1500px;
+            max-width: 1600px;
             margin: 0 auto;
         }
 
@@ -262,7 +299,7 @@
         #log {
             background: rgba(0,0,0,0.05);
             padding: 1rem;
-            height: 140px;
+            height: 200px;
             border-radius: 16px;
             font-family: 'Courier New', monospace;
             font-size: 0.85rem;
@@ -364,10 +401,631 @@
             margin-top: 0.5rem;
             box-shadow: 0 4px 15px rgba(0,184,148,0.3);
         }
+
+        /* ========== BEAUTIFUL SETTINGS POPUP STYLES ========== */
+        .settings-popup {
+            display: none;
+            position: fixed;
+            z-index: 8888;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(10px);
+            animation: fadeInSettings 0.3s ease-out;
+        }
+
+        @keyframes fadeInSettings {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .settings-popup-content {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 2.5rem;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideInSettings 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes slideInSettings {
+            from { 
+                opacity: 0;
+                transform: translate(-50%, -48%);
+            }
+            to { 
+                opacity: 1;
+                transform: translate(-50%, -50%);
+            }
+        }
+
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1.2rem;
+            border-bottom: 3px solid var(--accent);
+        }
+
+        .settings-header h2 {
+            margin: 0;
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, var(--accent), #00a085);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 900;
+        }
+
+        .settings-close {
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: var(--text-primary);
+            transition: transform 0.2s, color 0.2s;
+        }
+
+        .settings-close:hover {
+            transform: rotate(90deg);
+            color: #e17055;
+        }
+
+        /* ========== BEAUTIFUL SETTINGS OPTIONS ========== */
+        .settings-section {
+            background: linear-gradient(135deg, rgba(0,184,148,0.08), rgba(0,184,148,0.03));
+            border: 2px solid rgba(0,184,148,0.2);
+            border-radius: 18px;
+            padding: 1.8rem;
+            margin-bottom: 1.8rem;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .settings-section:hover {
+            border-color: var(--accent);
+            box-shadow: 0 12px 30px rgba(0,184,148,0.15);
+            transform: translateY(-4px);
+        }
+
+        .settings-section-title {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-size: 1.2rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .settings-section-icon {
+            font-size: 1.6rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .settings-section select,
+        .settings-section input[type="range"],
+        .settings-section input[type="number"] {
+            width: 100%;
+            padding: 1rem;
+            border-radius: 12px;
+            border: 2px solid rgba(0,184,148,0.3);
+            background: rgba(255,255,255,0.9);
+            font-size: 1rem;
+            transition: all 0.3s;
+            margin-bottom: 0.8rem;
+        }
+
+        .settings-section select:focus,
+        .settings-section input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: var(--glow);
+        }
+
+        .theme-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.6rem;
+        }
+
+        .theme-option {
+            padding: 0.8rem;
+            border: 2px solid rgba(0,184,148,0.2);
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: rgba(255,255,255,0.5);
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .theme-option:hover {
+            border-color: var(--accent);
+            background: rgba(0,184,148,0.1);
+            transform: scale(1.05);
+        }
+
+        .theme-option.active {
+            background: linear-gradient(135deg, var(--accent), #00a085);
+            color: white;
+            border-color: var(--accent);
+            box-shadow: 0 6px 15px rgba(0,184,148,0.3);
+        }
+
+        .voice-status {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(0,184,148,0.05);
+            padding: 1rem;
+            border-radius: 12px;
+            margin-top: 1rem;
+            border: 1px solid rgba(0,184,148,0.2);
+        }
+
+        .voice-status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .voice-status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #e17055;
+            animation: blink 1s ease-in-out infinite;
+        }
+
+        .voice-status-dot.active {
+            background: var(--accent);
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .repeat-slider-value {
+            text-align: center;
+            font-size: 1.4rem;
+            font-weight: 900;
+            color: var(--accent);
+            margin-top: 0.8rem;
+        }
+
+        .settings-footer {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 2px solid rgba(0,184,148,0.2);
+        }
+
+        .settings-footer button {
+            flex: 1;
+            padding: 1.2rem;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .settings-footer .btn-close {
+            background: linear-gradient(135deg, var(--accent), #00a085);
+            color: white;
+            box-shadow: 0 6px 15px rgba(0,184,148,0.3);
+        }
+
+        .settings-footer .btn-close:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0,184,148,0.4);
+        }
+
+        /* ========== RULES POPUP STYLES ========== */
+        .rules-popup {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow-y: auto;
+            animation: popupFadeIn 0.4s ease-out;
+        }
+
+        @keyframes popupFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .rules-popup-content {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: var(--card-bg);
+            border-radius: 24px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+            position: relative;
+        }
+
+        .rules-close {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            background: none;
+            border: none;
+            font-size: 2.5rem;
+            cursor: pointer;
+            color: var(--text-primary);
+            transition: transform 0.2s, color 0.2s;
+            z-index: 100;
+        }
+
+        .rules-close:hover {
+            transform: scale(1.2) rotate(90deg);
+            color: #e17055;
+        }
+
+        .rules-title {
+            text-align: center;
+            font-size: clamp(2rem, 5vw, 3rem);
+            font-weight: 900;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0 0 2.5rem 0;
+            animation: slideDown 0.5s ease-out;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .rules-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.8rem;
+            margin-bottom: 2rem;
+        }
+
+        .rules-section {
+            background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(248,250,252,0.8));
+            border-radius: 16px;
+            padding: 1.8rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            border-left: 6px solid var(--accent);
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            animation: slideUp 0.6s ease-out backwards;
+            position: relative;
+        }
+
+        .rules-section:nth-child(1) { animation-delay: 0s; }
+        .rules-section:nth-child(2) { animation-delay: 0.1s; }
+        .rules-section:nth-child(3) { animation-delay: 0.2s; }
+        .rules-section:nth-child(4) { animation-delay: 0.3s; }
+        .rules-section:nth-child(5) { animation-delay: 0.4s; }
+        .rules-section:nth-child(6) { animation-delay: 0.5s; }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .rules-section:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 40px rgba(0,184,148,0.2);
+        }
+
+        .rule-number {
+            position: absolute;
+            top: -12px;
+            left: 20px;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--accent), #00a085);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 1.8rem;
+            box-shadow: 0 6px 15px rgba(0,184,148,0.3);
+        }
+
+        .rules-section h2 {
+            margin: 0.8rem 0 0.8rem 0;
+            font-size: 1.4rem;
+            color: var(--text-primary);
+            font-weight: 700;
+        }
+
+        .rules-section p {
+            margin: 0.8rem 0;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: var(--text-primary);
+        }
+
+        .rule-details {
+            background: rgba(0,184,148,0.08);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            line-height: 1.8;
+            color: var(--text-primary);
+            border-left: 3px solid var(--accent);
+        }
+
+        .ticket-link {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.8rem 1.5rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 700;
+            transition: all 0.3s;
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .ticket-link:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.5);
+            text-decoration: none;
+        }
+
+        .rules-footer {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 2px solid rgba(0,184,148,0.2);
+        }
+
+        .rules-footer .btn {
+            background: linear-gradient(135deg, var(--accent), #00a085);
+            min-width: 250px;
+            font-size: 1.2rem;
+            padding: 1.2rem 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .settings-popup-content {
+                width: 95%;
+                max-height: 85vh;
+            }
+
+            header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .header-left, .header-right {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .header-title {
+                order: 2;
+                margin: 0;
+            }
+
+            .rules-popup-content {
+                margin: 1rem;
+                padding: 1.5rem;
+            }
+
+            .rules-title {
+                font-size: 1.8rem;
+            }
+
+            .rules-container {
+                grid-template-columns: 1fr;
+                gap: 1.2rem;
+            }
+
+            .layout {
+                grid-template-columns: 1fr;
+            }
+
+            #log {
+                height: 200px;
+            }
+
+            .theme-options {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
     </style>
 </head>
 <body data-theme="light">
-    <header>🎲 TAMBOLA✨</header>
+    <header>
+        <div class="header-left">
+            <button class="header-btn" onclick="openSettingsPopup()">⚙️ SETTINGS</button>
+        </div>
+        <div class="header-title">🎲 TAMBOLA✨</div>
+        <div class="header-right">
+            <button class="header-btn" onclick="openRulesPopup()">📖 RULES</button>
+        </div>
+    </header>
+
+    <!-- BEAUTIFUL SETTINGS POPUP -->
+    <div id="settingsPopup" class="settings-popup" onclick="if(event.target === this) closeSettingsPopup()">
+        <div class="settings-popup-content">
+            <div class="settings-header">
+                <h2>⚙️ SETTINGS</h2>
+                <button class="settings-close" onclick="closeSettingsPopup()">&times;</button>
+            </div>
+
+            <!-- Theme Setting -->
+            <div class="settings-section">
+                <div class="settings-section-title">
+                    <span class="settings-section-icon">🎨</span>
+                    <span>CHOOSE THEME</span>
+                </div>
+                <div class="theme-options">
+                    <div class="theme-option" onclick="changeTheme('light'); updateThemeActive()">Light ✨</div>
+                    <div class="theme-option" onclick="changeTheme('dark'); updateThemeActive()">Dark 🌙</div>
+                    <div class="theme-option" onclick="changeTheme('neon'); updateThemeActive()">Neon 💜</div>
+                    <div class="theme-option" onclick="changeTheme('gold'); updateThemeActive()">Gold 👑</div>
+                    <div class="theme-option" onclick="changeTheme('ocean'); updateThemeActive()">Ocean 🌊</div>
+                    <div class="theme-option" onclick="changeTheme('fire'); updateThemeActive()">Fire 🔥</div>
+                </div>
+                <select id="themeSelect" style="display: none;" onchange="changeTheme(this.value)"></select>
+            </div>
+
+            <!-- Repeat Times Setting -->
+            <div class="settings-section">
+                <div class="settings-section-title">
+                    <span class="settings-section-icon">🔊</span>
+                    <span>REPEAT TIMES</span>
+                </div>
+                <input type="range" id="repeatRange" min="1" max="10" value="3" onchange="updateRepeatCount(this.value)" style="margin: 0 0 1rem 0;">
+                <div class="repeat-slider-value" id="repeatValue">3×</div>
+            </div>
+
+            <!-- Voice Call Setting -->
+            <div class="settings-section">
+                <div class="settings-section-title">
+                    <span class="settings-section-icon">🎙️</span>
+                    <span>VOICE CALL</span>
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <button class="btn" id="voiceToggle" onclick="toggleVoice()" style="font-size:0.95rem;padding:0.8rem;margin-bottom: 0;">🔇 OFF</button>
+                </div>
+                
+                <label style="font-size: 0.95rem; font-weight: 700; margin-bottom: 0.6rem;">Volume Control:</label>
+                <input type="range" id="volumeRange" min="0" max="1" value="0.8" step="0.1" onchange="updateVolume(this.value)" style="margin-bottom: 1rem;">
+                
+                <label style="font-size: 0.95rem; font-weight: 700; margin-bottom: 0.6rem;">Select Voice:</label>
+                <select id="voiceList" onchange="selectVoice(this.value)" style="margin-bottom: 0.8rem;"></select>
+                
+                <div class="voice-status">
+                    <span class="voice-status-indicator">
+                        <span class="voice-status-dot" id="voiceStatusDot"></span>
+                        <span id="voiceStatusText">Voice: OFF</span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Footer Buttons -->
+            <div class="settings-footer">
+                <button class="btn-close" onclick="closeSettingsPopup()">✅ DONE</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- RULES POPUP -->
+    <div id="rulesPopup" class="rules-popup">
+        <div class="rules-popup-content">
+            <button class="rules-close" onclick="closeRulesPopup()">&times;</button>
+            
+            <h1 class="rules-title">🎲 TAMBOLA RULES & SETUP</h1>
+            
+            <div class="rules-container">
+                <!-- Point 1: Tickets -->
+                <div class="rules-section">
+                    <div class="rule-number">1</div>
+                    <h2>📝 Keep Your Tickets Ready</h2>
+                    <p>Each player needs a Tambola ticket with 3 rows, 9 columns, and 15 numbers.</p>
+                    <a href="https://www.flipkart.com/tambola-tickets-simple-theme-bingo-housie-game-set-100-cards-printed-hard-sheet-premium-quality-big-size-board-accessories/p/itm26d70346ed008" target="_blank" class="ticket-link">
+                        🛒 Buy Tickets on Flipkart
+                    </a>
+                </div>
+
+                <!-- Point 2: Bamboo -->
+                <div class="rules-section">
+                    <div class="rule-number">2</div>
+                    <h2>🎋 BAMBOO</h2>
+                    <p><strong>First player to mark any 1 number</strong> on their ticket wins this round.</p>
+                    <div class="rule-details">
+                        💰 <strong>Prize:</strong> Small prize/points<br>
+                        ⏱️ <strong>Duration:</strong> ~5 seconds from first draw
+                    </div>
+                </div>
+
+                <!-- Point 3: Corner -->
+                <div class="rules-section">
+                    <div class="rule-number">3</div>
+                    <h2>🔲 CORNER</h2>
+                    <p><strong>First player to mark all 4 corner numbers</strong> on their ticket wins.</p>
+                    <div class="rule-details">
+                        📍 <strong>Corner Numbers:</strong> Top-Left, Top-Right, Bottom-Left, Bottom-Right<br>
+                        💰 <strong>Prize:</strong> Medium prize<br>
+                        📊 <strong>Difficulty:</strong> ⭐⭐ (Medium)
+                    </div>
+                </div>
+
+                <!-- Point 4: First 5 -->
+                <div class="rules-section">
+                    <div class="rule-number">4</div>
+                    <h2>✋ FIRST 5</h2>
+                    <p><strong>First player to mark any 5 numbers</strong> anywhere on their ticket wins.</p>
+                    <div class="rule-details">
+                        🎯 <strong>Pattern:</strong> Any 5 numbers (no specific order needed)<br>
+                        💰 <strong>Prize:</strong> Medium prize<br>
+                        📊 <strong>Difficulty:</strong> ⭐⭐ (Medium)
+                    </div>
+                </div>
+
+                <!-- Point 5: Lines -->
+                <div class="rules-section">
+                    <div class="rule-number">5</div>
+                    <h2>➡️ LINE / EARLY LINE</h2>
+                    <p><strong>First player to mark all numbers in any 1 horizontal row</strong> on their ticket wins.</p>
+                    <div class="rule-details">
+                        📐 <strong>Pattern:</strong> Complete any single row (left to right)<br>
+                        💰 <strong>Prize:</strong> Good prize<br>
+                        📊 <strong>Difficulty:</strong> ⭐⭐⭐ (Hard)<br>
+                        💡 <strong>Tip:</strong> Early Line = First row completed (usually higher prize)
+                    </div>
+                </div>
+
+                <!-- Point 6: Full House -->
+                <div class="rules-section">
+                    <div class="rule-number">6</div>
+                    <h2>🏆 FULL HOUSE</h2>
+                    <p><strong>First player to mark all 15 numbers</strong> on their ticket wins the JACKPOT!</p>
+                    <div class="rule-details">
+                        🎯 <strong>Pattern:</strong> All 15 numbers across all 3 rows<br>
+                        💰 <strong>Prize:</strong> JACKPOT (Highest Prize!)<br>
+                        📊 <strong>Difficulty:</strong> ⭐⭐⭐⭐⭐ (Very Hard)<br>
+                        🎉 <strong>Celebration:</strong> Grand finale of the game
+                    </div>
+                </div>
+            </div>
+
+            <div class="rules-footer">
+                <button class="btn" onclick="closeRulesPopup()">🎮 START GAME</button>
+            </div>
+        </div>
+    </div>
 
     <div class="layout">
         <!-- LEFT: Main Controls -->
@@ -393,10 +1051,6 @@
                     </div>
                 </div>
             </div>
-            
-            <div class="card">
-                <div id="log"></div>
-            </div>
         </div>
 
         <!-- CENTER: Stunning Grid -->
@@ -404,38 +1058,16 @@
             <div id="grid"></div>
         </div>
 
-        <!-- RIGHT: Elegant Controls -->
+        <!-- RIGHT: History/Log & Last 3 -->
         <div class="sidebar">
             <div class="card">
-                <label>🎨 THEME</label>
-                <select id="themeSelect" onchange="changeTheme(this.value)">
-                    <option value="light">Light ✨</option>
-                    <option value="dark">Dark 🌙</option>
-                    <option value="neon">Neon 💜</option>
-                    <option value="gold">Gold 👑</option>
-                    <option value="ocean">Ocean 🌊</option>
-                    <option value="fire">Fire 🔥</option>
-                </select>
-            </div>
-            
-            <div class="card">
-                <label>🔊 REPEAT TIMES</label>
-                <input type="number" id="repeatCount" min="1" max="10" value="3" onchange="updateRepeatCount(this.value)">
-                <div id="repeatDisplay" class="repeat-display">3 TIMES</div>
-            </div>
-            
-            <div class="card">
-                <label>🔊 VOICE CALL</label>
-                <div style="margin-bottom: 0.8rem;">
-                    <button class="btn" id="voiceToggle" onclick="toggleVoice()" style="font-size:0.95rem;padding:0.8rem;">🔇 OFF</button>
-                </div>
-                <input type="range" id="volumeRange" min="0" max="1" value="0.8" step="0.1" onchange="updateVolume(this.value)">
-                <select id="voiceList" onchange="selectVoice(this.value)" style="margin-top:0.6rem;"></select>
-            </div>
-            
-            <div class="card">
-                <label>🏆 LAST 3</label>
+                <label style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem;">🏆 LAST 3</label>
                 <div class="last3" id="last3"></div>
+            </div>
+
+            <div class="card">
+                <label style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem;">📋 HISTORY</label>
+                <div id="log"></div>
             </div>
         </div>
     </div>
@@ -458,7 +1090,52 @@
             loadPreferences();
             initVoiceSystem();
             updateRepeatDisplay();
+            updateThemeActive();
         }
+
+        // ========== SETTINGS POPUP FUNCTIONS ==========
+        function openSettingsPopup() {
+            document.getElementById('settingsPopup').style.display = 'block';
+            updateThemeActive();
+        }
+
+        function closeSettingsPopup() {
+            document.getElementById('settingsPopup').style.display = 'none';
+        }
+
+        function updateThemeActive() {
+            const currentTheme = document.body.dataset.theme || 'light';
+            document.querySelectorAll('.theme-option').forEach(option => {
+                option.classList.remove('active');
+                if (option.textContent.toLowerCase().includes(currentTheme.toLowerCase()) || 
+                    (currentTheme === 'light' && option.textContent.includes('Light')) ||
+                    (currentTheme === 'dark' && option.textContent.includes('Dark')) ||
+                    (currentTheme === 'neon' && option.textContent.includes('Neon')) ||
+                    (currentTheme === 'gold' && option.textContent.includes('Gold')) ||
+                    (currentTheme === 'ocean' && option.textContent.includes('Ocean')) ||
+                    (currentTheme === 'fire' && option.textContent.includes('Fire'))) {
+                    option.classList.add('active');
+                }
+            });
+        }
+
+        // ========== RULES POPUP FUNCTIONS ==========
+        function openRulesPopup() {
+            document.getElementById('rulesPopup').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeRulesPopup() {
+            document.getElementById('rulesPopup').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeSettingsPopup();
+                closeRulesPopup();
+            }
+        });
 
         // 🔊 FIXED VOICE SYSTEM
         function initVoiceSystem() {
@@ -467,7 +1144,6 @@
                 return;
             }
 
-            // Load voices immediately AND on change
             function populateVoices() {
                 voicesList = speechSynthesis.getVoices();
                 console.log(`Loaded ${voicesList.length} voices`);
@@ -480,7 +1156,6 @@
                     return;
                 }
 
-                // Filter and sort voices (English + Premium first)
                 const englishVoices = voicesList.filter(v => 
                     v.lang.startsWith('en') || 
                     v.name.includes('Microsoft') || 
@@ -488,7 +1163,6 @@
                     v.name.includes('Samantha') ||
                     v.name.includes('Zira')
                 ).sort((a, b) => {
-                    // Premium voices first
                     const premiumA = a.name.includes('Microsoft') || a.name.includes('Google');
                     const premiumB = b.name.includes('Microsoft') || b.name.includes('Google');
                     return premiumB - premiumA;
@@ -501,7 +1175,6 @@
                     dropdown.appendChild(option);
                 });
 
-                // Restore saved voice
                 const savedVoice = localStorage.getItem('tambolaVoice');
                 if (savedVoice && voicesList[parseInt(savedVoice)]) {
                     dropdown.value = savedVoice;
@@ -509,12 +1182,10 @@
                 }
             }
 
-            // Try immediate load, then wait for voiceschanged
             populateVoices();
             speechSynthesis.onvoiceschanged = populateVoices;
         }
 
-        // 🎤 Voice selection handler
         function selectVoice(voiceIndex) {
             currentVoice = parseInt(voiceIndex);
             localStorage.setItem('tambolaVoice', currentVoice);
@@ -570,13 +1241,13 @@
 
         function updateRepeatCount(value) {
             repeatCount = parseInt(value);
-            updateRepeatDisplay();
+            document.getElementById('repeatValue').textContent = `${repeatCount}×`;
+            document.getElementById('repeatRange').value = value;
             savePreferences();
         }
 
         function updateRepeatDisplay() {
-            const display = document.getElementById('repeatDisplay');
-            display.textContent = `${repeatCount} TIME${repeatCount > 1 ? 'S' : ''}`;
+            document.getElementById('repeatValue').textContent = `${repeatCount}×`;
         }
 
         // 🗣️ FIXED VOICE CALL OUT
@@ -586,7 +1257,6 @@
                 return;
             }
             
-            // Clear any pending speech
             speechSynthesis.cancel();
             
             for (let i = 0; i < repeatCount; i++) {
@@ -595,7 +1265,6 @@
                     utterance.volume = currentVolume;
                     utterance.rate = i === 0 ? 0.7 : 0.9;
                     
-                    // ✅ FIXED: Proper voice assignment with validation
                     if (currentVoice >= 0 && currentVoice < voicesList.length) {
                         const selectedVoice = voicesList[currentVoice];
                         utterance.voice = selectedVoice;
@@ -651,10 +1320,20 @@
         function toggleVoice() {
             voiceActive = !voiceActive;
             const btn = document.getElementById('voiceToggle');
-            btn.innerHTML = voiceActive ? `🔊 ON <span style="font-size:0.8em;">(${repeatCount}x)</span>` : '🔇 OFF';
-            btn.style.background = voiceActive ? 
-                'linear-gradient(135deg, #00b894, #00cec9)' : 
-                'linear-gradient(135deg, #636e72, #2d3436)';
+            const statusDot = document.getElementById('voiceStatusDot');
+            const statusText = document.getElementById('voiceStatusText');
+            
+            if (voiceActive) {
+                btn.innerHTML = `🔊 ON <span style="font-size:0.8em;">(${repeatCount}x)</span>`;
+                btn.style.background = 'linear-gradient(135deg, #00b894, #00cec9)';
+                statusDot.classList.add('active');
+                statusText.textContent = `Voice: ON (${repeatCount}x repeat)`;
+            } else {
+                btn.innerHTML = '🔇 OFF';
+                btn.style.background = 'linear-gradient(135deg, #636e72, #2d3436)';
+                statusDot.classList.remove('active');
+                statusText.textContent = 'Voice: OFF';
+            }
         }
 
         function updateVolume(value) {
@@ -664,6 +1343,7 @@
         function changeTheme(theme) {
             document.body.dataset.theme = theme;
             savePreferences();
+            updateThemeActive();
         }
 
         function loadPreferences() {
@@ -671,9 +1351,8 @@
             const savedTheme = prefs.theme || 'light';
             repeatCount = prefs.repeat || 3;
             
-            document.getElementById('themeSelect').value = savedTheme;
-            document.getElementById('repeatCount').value = repeatCount;
             changeTheme(savedTheme);
+            document.getElementById('repeatRange').value = repeatCount;
             updateRepeatDisplay();
         }
 
@@ -699,4 +1378,3 @@
     </script>
 </body>
 </html>
-
