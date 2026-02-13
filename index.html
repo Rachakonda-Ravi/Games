@@ -4,24 +4,42 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ravi's Games 🎮</title>
-    <style>
+    <style id="theme-styles">
+        :root {
+            --bg-primary: #667eea;
+            --bg-secondary: #764ba2;
+            --text-primary: white;
+            --shadow: rgba(0,0,0,0.2);
+            --border: rgba(255,255,255,0.3);
+            --btn-hover: rgba(255,255,255,0.25);
+        }
+        [data-theme="dark"] {
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --text-primary: #e0e0e0;
+            --shadow: rgba(0,0,0,0.5);
+            --border: rgba(255,255,255,0.1);
+            --btn-hover: rgba(255,255,255,0.15);
+        }
+        
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            color: white;
+            color: var(--text-primary);
             text-align: center;
             padding: 20px;
+            transition: background 0.3s ease;
         }
         h1 {
             font-size: clamp(2.5rem, 8vw, 4rem);
             margin-bottom: 1rem;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            text-shadow: 2px 2px 4px var(--shadow);
         }
         .subtitle {
             font-size: 1.3rem;
@@ -38,36 +56,132 @@
         .game-btn {
             background: rgba(255,255,255,0.15);
             backdrop-filter: blur(10px);
-            border: 2px solid rgba(255,255,255,0.3);
+            border: 2px solid var(--border);
             border-radius: 20px;
             padding: 1.5rem 2rem;
             font-size: 1.2rem;
             font-weight: bold;
-            color: white;
+            color: var(--text-primary);
             text-decoration: none;
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 1rem;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            box-shadow: 0 8px 32px var(--shadow);
         }
         .game-btn:hover {
-            background: rgba(255,255,255,0.25);
+            background: var(--btn-hover);
             transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+            box-shadow: 0 15px 40px var(--shadow);
         }
         .game-icon {
             font-size: 2rem;
         }
-        footer {
+        .footer-content {
             margin-top: 3rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+        .credits {
             opacity: 0.7;
             font-size: 0.9rem;
+        }
+        .trademark-btn {
+            background: rgba(255,215,0,0.2);
+            border: 1px solid rgba(255,215,0,0.5);
+            color: #ffd700;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        .trademark-btn:hover {
+            background: rgba(255,215,0,0.3);
+            transform: translateY(-2px);
+        }
+        /* Theme Toggle Button */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 50px;
+            height: 50px;
+            border: none;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            color: var(--text-primary);
+            font-size: 1.2rem;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px var(--shadow);
+            z-index: 100;
+        }
+        .theme-toggle:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.1);
+        }
+        /* Modal Styles (unchanged) */
+        .rules-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .rules-content {
+            background: var(--text-primary);
+            color: #333;
+            max-width: 500px;
+            max-height: 80vh;
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            overflow-y: auto;
+        }
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #999;
+        }
+        .close-btn:hover { color: #333; }
+        .rules-list {
+            list-style: none;
+            padding: 0;
+        }
+        .rules-list li {
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #eee;
+        }
+        .rules-list li:last-child { border-bottom: none; }
+        @media (max-width: 600px) {
+            .rules-content { margin: 20px; padding: 1.5rem; }
+            .theme-toggle { top: 15px; left: 15px; width: 45px; height: 45px; }
         }
     </style>
 </head>
 <body>
+    <!-- Top-left Theme Toggle -->
+    <button class="theme-toggle" id="themeToggle" title="Toggle Theme" aria-label="Toggle light/dark mode">
+        🌙
+    </button>
+
     <h1>🎮 Ravi's Games</h1>
     <p class="subtitle">Digital Board Games Collection</p>
     
@@ -88,14 +202,66 @@
             <span class="game-icon">🏇🎯</span>
             Asta-Chamma
         </a>
-        <a href="Ludo.html" class="game-btn">
-            <span class="game-icon">🎲🔴🟡🟢🔵</span>
-            Ludo
-        </a>
     </div>
     
-    <footer>
-        Made with ❤️ by <a href="https://github.com/Rachakonda-Ravi" style="color: #ffd700;">@Rachakonda-Ravi</a>
-    </footer>
+    <div class="footer-content">
+        <div class="credits">
+            Made with ❤️ by <a href="https://github.com/Rachakonda-Ravi" style="color: #ffd700;">@Rachakonda-Ravi</a>
+        </div>
+        <a href="#" id="trademarkBtn" class="trademark-btn" title="Terms & Copyright">
+            ™ © 2026 Ravi's Games
+        </a>
+    </div>
+
+    <!-- Rules Modal (unchanged) -->
+    <div id="rulesModal" class="rules-modal">
+        <div class="rules-content">
+            <span class="close-btn" id="closeModal">&times;</span>
+            <h2>📜 Rules of Use</h2>
+            <ul class="rules-list">
+                <li><strong>🎮 Personal Use Only:</strong> Play for fun on this site.</li>
+                <li><strong>🚫 No Commercial Use:</strong> Cannot use games for business/profit.</li>
+                <li><strong>❌ No Redistribution:</strong> Do not copy, share, or host elsewhere.</li>
+                <li><strong>🔒 No Use Without Permission:</strong> Cannot modify or use source code without written permission from Ravi Rachakonda.</li>
+                <li><strong>📱 Attribution Required:</strong> Credit "@Rachakonda-Ravi" if sharing screenshots.</li>
+            </ul>
+            <p style="margin-top: 1.5rem; font-size: 0.9rem; color: #666;">
+                © 2026 Ravi Rachakonda. All Rights Reserved. 
+                <a href="mailto:rachakonda.ravi@example.com" style="color: #007bff;">Contact for permissions</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Theme Toggle with localStorage persistence
+        const themeToggle = document.getElementById('themeToggle');
+        const themeStyles = document.getElementById('theme-styles');
+        const html = document.documentElement;
+        
+        // Load saved theme or default to light
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        html.setAttribute('data-theme', savedTheme);
+        themeToggle.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+        
+        themeToggle.onclick = () => {
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            themeToggle.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+        };
+        
+        // Modal logic (unchanged)
+        const trademarkBtn = document.getElementById('trademarkBtn');
+        const rulesModal = document.getElementById('rulesModal');
+        const closeModal = document.getElementById('closeModal');
+        
+        trademarkBtn.onclick = (e) => { e.preventDefault(); rulesModal.style.display = 'flex'; };
+        closeModal.onclick = () => rulesModal.style.display = 'none';
+        window.onclick = (e) => {
+            if(e.target === rulesModal) rulesModal.style.display = 'none';
+        };
+    </script>
 </body>
 </html>
