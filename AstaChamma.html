@@ -195,39 +195,89 @@
             font-weight: bold;
         }
 
-        .rules-grid{
+        .rules-grid-beauty{
             display:grid;
-            grid-template-columns: repeat(2, minmax(220px, 1fr));
+            grid-template-columns:repeat(2, minmax(240px, 1fr));
             gap:14px;
             margin-top:18px;
         }
-
-            .rule-card{
-            border: 1px solid rgba(255,255,255,0.14);
-            border-radius: 16px;
-            padding: 16px 16px 14px;
-            background: rgba(255,255,255,0.06);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.10);
-            min-height: 120px; /* makes them feel like “squares” */
+        @media (max-width: 700px){
+            .rules-grid-beauty{ grid-template-columns:1fr; }
         }
 
-            .rule-card h3{
-            margin: 0 0 8px;
-            font-family: Cinzel, serif;
-            color: #ffd700;
-            font-size: 1.05rem;
-            letter-spacing: 0.3px;
+        .rule-pack{
+            border:1px solid rgba(255,255,255,0.14);
+            border-radius:18px;
+            padding:16px;
+            background:rgba(255,255,255,0.06);
+            box-shadow:0 10px 25px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.10);
+            min-height:140px;
         }
-            .rule-card p{
+
+        .rule-pack-head{
+            display:flex;
+            align-items:center;
+            gap:10px;
+            margin-bottom:6px;
+        }
+
+        .rule-pack-no{
+            width:34px;
+            height:34px;
+            border-radius:999px;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            font-weight:800;
+            color:#1a1a1a;
+            background:linear-gradient(45deg, #ffd700, #ffed4e, #ff6b35);
+            box-shadow:0 10px 25px rgba(0,0,0,0.35);
+            flex:0 0 auto;
+        }
+
+        .rule-pack h3{
             margin:0;
+            font-size:1.05rem;
+            letter-spacing:0.3px;
+            color:#ffd700;
+            font-family:Cinzel, serif;
+        }
+
+        .rule-pack-sub{
+            margin:0 0 12px 44px;
+            opacity:0.82;
+            font-size:0.92rem;
+            line-height:1.35;
+        }
+
+        .rule-pack-body{
+            margin-left:4px;
+            background:rgba(79,172,254,0.08);
+            border:1px solid rgba(79,172,254,0.18);
+            border-radius:14px;
+            padding:12px 12px;
+        }
+
+        .rule-line{
+            display:flex;
+            gap:10px;
+            padding:8px 6px;
+            border-bottom:1px solid rgba(255,255,255,0.10);
+        }
+        .rule-line:last-child{ border-bottom:none; }
+
+        .rule-line .k{
+            width:120px;
+            flex:0 0 auto;
+            font-weight:700;
+            opacity:0.95;
+            color:#cfe9ff;
+        }
+        .rule-line .v{
+            flex:1;
             opacity:0.92;
             line-height:1.35;
-            font-size:0.95rem;
-        }
-
-            @media (max-width: 650px){
-            .rules-grid{ grid-template-columns: 1fr; }
-            .rule-card{ min-height: unset; }
+            color:#ffffff;
         }
 
         .close-btn {
@@ -540,52 +590,206 @@
         </div>
     </div>
 
-    <!-- Rules Modal -->
+    <!-- Rules Modal (Grouped + Beautiful cards like your example) -->
     <div id="rulesModal" class="modal">
     <div class="modal-content">
         <button class="close-btn" id="closeRulesBtn">&times;</button>
         <h2>AstaChemma Rules</h2>
 
-        <div class="rules-grid">
-        <div class="rule-card">
-            <h3>Pieces</h3>
-            <p>Each player has 3 Knights and 1 King.</p>
+        <div class="rules-grid rules-grid-beauty">
+
+        <!-- 1 -->
+        <div class="rule-pack">
+            <div class="rule-pack-head">
+            <span class="rule-pack-no">1</span>
+            <h3>Setup</h3>
+            </div>
+            <p class="rule-pack-sub">Players, pieces, and core board structure.</p>
+
+            <div class="rule-pack-body">
+            <div class="rule-line"><span class="k">Players</span><span class="v">2–4 (default 4), clockwise turns.</span></div>
+            <div class="rule-line"><span class="k">Pieces</span><span class="v">3 Knights + 1 King per player, all start at Base (0).</span></div>
+            <div class="rule-line"><span class="k">Track</span><span class="v">Path 1–24, Core 25 (exact landing).</span></div>
+            </div>
         </div>
 
-        <div class="rule-card">
-            <h3>Type-locked Combat</h3>
-            <p>Knights eliminate Knights only; Kings eliminate Kings only. Wrong match = illegal move.</p>
+        <!-- 2 -->
+        <div class="rule-pack">
+            <div class="rule-pack-head">
+            <span class="rule-pack-no">2</span>
+            <h3>Movement Basics</h3>
+            </div>
+            <p class="rule-pack-sub">Landing rules, stacking, and safe squares.</p>
+
+            <div class="rule-pack-body">
+            <div class="rule-line"><span class="k">Landing matters</span><span class="v">Passing does nothing; only landing is checked.</span></div>
+            <div class="rule-line"><span class="k">No stacking</span><span class="v">Only one piece per normal square.</span></div>
+            <div class="rule-line"><span class="k">Stack allowed</span><span class="v">Only in Base and Safe Zones.</span></div>
+            <div class="rule-line"><span class="k">Blocking</span><span class="v">Only blocks landing; passing through is allowed.</span></div>
+            </div>
         </div>
 
-        <div class="rule-card">
-            <h3>Safe Zones</h3>
-            <p>No elimination in Safe Zones. Stacking is allowed only in Base and Safe Zones.</p>
+        <!-- 3 -->
+        <div class="rule-pack">
+            <div class="rule-pack-head">
+            <span class="rule-pack-no">3</span>
+            <h3>Dice & Extra Rolls</h3>
+            </div>
+            <p class="rule-pack-sub">How rolling works and how turns extend.</p>
+
+            <div class="rule-pack-body">
+            <div class="rule-line"><span class="k">Dice</span><span class="v">Roll 1–8 (8 replaces classic 6).</span></div>
+            <div class="rule-line"><span class="k">Extra roll</span><span class="v">Roll 8 → extra roll.</span></div>
+            <div class="rule-line"><span class="k">Bonus roll</span><span class="v">Capture or reaching Core → bonus roll.</span></div>
+            <div class="rule-line"><span class="k">Turn cap</span><span class="v">Max accumulated score per turn = 32.</span></div>
+            </div>
         </div>
 
-        <div class="rule-card">
-            <h3>King Move Rule</h3>
-            <p>King moves only on even dice totals; odd totals become illegal for the King.</p>
+        <!-- 4 -->
+        <div class="rule-pack">
+            <div class="rule-pack-head">
+            <span class="rule-pack-no">4</span>
+            <h3>Teen Tigada</h3>
+            </div>
+            <p class="rule-pack-sub">The brutal roll pattern.</p>
+
+            <div class="rule-pack-body">
+            <div class="rule-line">
+                <span class="k">Rule</span>
+                <span class="v">If you roll 8 + 8 + 8 + 3, the entire turn is cancelled.</span>
+            </div>
+            </div>
         </div>
 
-        <div class="rule-card">
-            <h3>Inner Zone Lock</h3>
-            <p>Inner zone opens only after you make 1 elimination (with any piece).</p>
+        <!-- 5 -->
+        <div class="rule-pack">
+            <div class="rule-pack-head">
+            <span class="rule-pack-no">5</span>
+            <h3>Roll → Then Move</h3>
+            </div>
+            <p class="rule-pack-sub">Strict two-phase turn system.</p>
+
+            <div class="rule-pack-body">
+            <div class="rule-line"><span class="k">Step 1</span><span class="v">Finish all rolls first (including extras/bonuses).</span></div>
+            <div class="rule-line"><span class="k">Step 2</span><span class="v">Movement phase begins only after rolling ends.</span></div>
+            </div>
         </div>
 
-        <div class="rule-card">
-            <h3>Core Entry (25)</h3>
-            <p>Exact entry required. Overshoot = illegal move.</p>
+        <!-- 6 -->
+        <div class="rule-pack">
+            <div class="rule-pack-head">
+            <span class="rule-pack-no">6</span>
+            <h3>Score Splits & No Waste</h3>
+            </div>
+            <p class="rule-pack-sub">Your defining “strict math” system.</p>
+
+            <div class="rule-pack-body">
+            <div class="rule-line"><span class="k">No split</span><span class="v">A single roll cannot be split (4 ≠ 2+2).</span></div>
+            <div class="rule-line"><span class="k">Can split total</span><span class="v">Total accumulated score may be split into chunks across pieces.</span></div>
+            <div class="rule-line"><span class="k">No Waste</span><span class="v">If even 1 point is unusable, the entire turn is invalid.</span></div>
+            </div>
         </div>
 
-        <div class="rule-card">
-            <h3>Illegal Move Penalty</h3>
-            <p>3 illegal attempts → turn skipped (counter resets after the skip).</p>
+        <!-- 7 -->
+        <div class="rule-pack">
+            <div class="rule-pack-head">
+            <span class="rule-pack-no">7</span>
+            <h3>Base Exit</h3>
+            </div>
+            <p class="rule-pack-sub">How pieces leave Base (0).</p>
+
+            <div class="rule-pack-body">
+            <div class="rule-line"><span class="k">Exit only</span><span class="v">Only on 4 or 8.</span></div>
+            <div class="rule-line"><span class="k">Double Knight exit</span><span class="v">8 may be used as 4+4 to exit two Knights (consumes full 8).</span></div>
+            </div>
         </div>
 
-        <div class="rule-card">
-            <h3>Bonus Roll</h3>
-            <p>Capture or reaching the Core grants a bonus roll (if you implement dice later).</p>
+        <!-- 8 -->
+        <div class="rule-pack">
+            <div class="rule-pack-head">
+            <span class="rule-pack-no">8</span>
+            <h3>King Rules</h3>
+            </div>
+            <p class="rule-pack-sub">The King is expensive and even-locked.</p>
+
+            <div class="rule-pack-body">
+            <div class="rule-line"><span class="k">Even only</span><span class="v">King moves only on even chunks; odd chunks are illegal.</span></div>
+            <div class="rule-line"><span class="k">Cost</span><span class="v">King cost = 2 points per square (4 → 2 squares).</span></div>
+            </div>
         </div>
+
+        <!-- 9 -->
+        <div class="rule-pack">
+            <div class="rule-pack-head">
+            <span class="rule-pack-no">9</span>
+            <h3>Combat & Safe Zones</h3>
+            </div>
+            <p class="rule-pack-sub">Type-locked eliminations.</p>
+
+            <div class="rule-pack-body">
+            <div class="rule-line"><span class="k">Type-locked</span><span class="v">Knight kills Knight only; King kills King only.</span></div>
+            <div class="rule-line"><span class="k">Landing</span><span class="v">Capture only by landing exactly on the enemy.</span></div>
+            <div class="rule-line"><span class="k">Safe Zones</span><span class="v">No elimination in Safe Zones; safe squares protect pieces.</span></div>
+            </div>
+        </div>
+
+        <!-- 10 -->
+        <div class="rule-pack">
+            <div class="rule-pack-head">
+            <span class="rule-pack-no">10</span>
+            <h3>Inner Lock</h3>
+            </div>
+            <p class="rule-pack-sub">Inner track requires blood.</p>
+
+            <div class="rule-pack-body">
+            <div class="rule-line"><span class="k">Unlock</span><span class="v">Inner track opens only after you eliminate at least 1 enemy piece.</span></div>
+            <div class="rule-line"><span class="k">Before unlock</span><span class="v">Landing in Inner is illegal.</span></div>
+            </div>
+        </div>
+
+        <!-- 11 -->
+        <div class="rule-pack">
+            <div class="rule-pack-head">
+            <span class="rule-pack-no">11</span>
+            <h3>Core & Overshoot</h3>
+            </div>
+            <p class="rule-pack-sub">Exact finish, no mercy.</p>
+
+            <div class="rule-pack-body">
+            <div class="rule-line"><span class="k">Exact entry</span><span class="v">Must land exactly on 25 to finish a piece.</span></div>
+            <div class="rule-line"><span class="k">Overshoot</span><span class="v">If a chunk makes position &gt; 25, that chunk is illegal and must be reassigned.</span></div>
+            <div class="rule-line"><span class="k">No Waste applies</span><span class="v">If reassignment is impossible, the entire turn becomes invalid.</span></div>
+            </div>
+        </div>
+
+        <!-- 12 -->
+        <div class="rule-pack">
+            <div class="rule-pack-head">
+            <span class="rule-pack-no">12</span>
+            <h3>Illegal Moves</h3>
+            </div>
+            <p class="rule-pack-sub">Consecutive mistakes have consequences.</p>
+
+            <div class="rule-pack-body">
+            <div class="rule-line"><span class="k">1st</span><span class="v">Warning.</span></div>
+            <div class="rule-line"><span class="k">2nd</span><span class="v">Hint (spoiler).</span></div>
+            <div class="rule-line"><span class="k">3rd</span><span class="v">Turn skipped; counter resets after the skip or after a valid move.</span></div>
+            </div>
+        </div>
+
+        <!-- 13 -->
+        <div class="rule-pack">
+            <div class="rule-pack-head">
+            <span class="rule-pack-no">13</span>
+            <h3>Winning</h3>
+            </div>
+            <p class="rule-pack-sub">Placements, not just one winner.</p>
+
+            <div class="rule-pack-body">
+            <div class="rule-line"><span class="k">Finish</span><span class="v">First to finish all 4 pieces = 1st place; then 2nd, then 3rd; game ends.</span></div>
+            </div>
+        </div>
+
         </div>
     </div>
     </div>
