@@ -1,519 +1,388 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AstaChemma - Beautiful Board Game</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Poppins:wght@300;400;500;600&display=swap');
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>AstaChemma</title>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Poppins:wght@300;400;500;600&display=swap');
+
+    :root{
+      --bg0:#07070b; --bg1:#0a0a12;
+      --panel:rgba(18,18,30,.78);
+      --panel2:rgba(255,255,255,.06);
+      --stroke:rgba(255,255,255,.12);
+      --stroke2:rgba(255,255,255,.18);
+      --text:#ffffff; --muted:rgba(255,255,255,.74);
+      --gold1:#ffd700; --gold2:#ffed4e; --gold3:#ff6b35;
+      --blue:#4facfe; --good:#2ee37a; --bad:#ff4d4d;
+      --shadow:0 25px 50px rgba(0,0,0,.68);
+      --shadow2:0 10px 25px rgba(0,0,0,.35);
+      --radius-xl:24px; --radius-lg:18px; --radius-md:14px;
+      --pieceScale:1;
+    }
+
+    body[data-theme="dark"]{
+      --bg0:#07070b; --bg1:#0a0a12;
+      --panel:rgba(18,18,30,.78);
+      --panel2:rgba(255,255,255,.06);
+      --stroke:rgba(255,255,255,.12);
+      --stroke2:rgba(255,255,255,.18);
+      --blue:#4facfe;
+    }
+    body[data-theme="neon"]{
+      --bg0:#05030b; --bg1:#090516;
+      --panel:rgba(12,10,25,.80);
+      --panel2:rgba(255,255,255,.05);
+      --stroke:rgba(170,120,255,.20);
+      --stroke2:rgba(255,255,255,.18);
+      --blue:#8a5bff;
+    }
+    body[data-theme="classic"]{
+      --bg0:#0b0703; --bg1:#120c06;
+      --panel:rgba(25,18,10,.82);
+      --panel2:rgba(255,255,255,.06);
+      --stroke:rgba(255,220,170,.18);
+      --stroke2:rgba(255,255,255,.18);
+      --blue:#7ad7ff;
+    }
+
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{
+      background:
+        radial-gradient(1200px 700px at 50% 10%, rgba(79,172,254,.10), transparent 55%),
+        radial-gradient(900px 600px at 10% 90%, rgba(255,107,53,.10), transparent 55%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+      min-height:100vh;
+      font-family:'Poppins',sans-serif;
+      color:var(--text);
+      overflow-x:auto;
+      padding:18px 14px 28px;
+    }
+
+    .wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+
+    .header{
+      display:flex;align-items:center;justify-content:space-between;gap:14px;
+      padding:16px 18px;border-radius:var(--radius-xl);
+      background:linear-gradient(90deg, rgba(0,0,0,.35), rgba(255,255,255,.03));
+      border:1px solid var(--stroke);
+      box-shadow:var(--shadow2);
+      backdrop-filter:blur(16px);
+    }
+    .header-left,.header-right{display:flex;gap:10px;align-items:center}
+    .game-title{
+      font-family:'Cinzel',serif;
+      font-size:clamp(1.65rem,3.6vw,2.7rem);
+      background:linear-gradient(45deg,var(--gold1),var(--gold2),var(--gold3));
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+      text-align:center;letter-spacing:1px;flex:1;min-width:220px;line-height:1.05;
+    }
+    .subtitle{margin-top:6px;font-size:.9rem;color:var(--muted);font-weight:300;letter-spacing:.2px}
+
+    .btn{
+      appearance:none;border:1px solid var(--stroke);
+      background:linear-gradient(145deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      color:var(--text);padding:10px 14px;border-radius:14px;font-weight:700;font-size:14px;
+      cursor:pointer;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;
+      box-shadow:0 10px 25px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.10);
+      user-select:none;
+    }
+    .btn:hover{transform:translateY(-1px);border-color:var(--stroke2);box-shadow:0 16px 35px rgba(0,0,0,.33), inset 0 1px 0 rgba(255,255,255,.14)}
+    .btn:active{transform:translateY(0)}
+    .btn.primary{border-color:rgba(255,215,0,.35);background:linear-gradient(145deg, rgba(255,215,0,.18), rgba(255,107,53,.10))}
+    .btn.good{border-color:rgba(46,227,122,.35);background:linear-gradient(145deg, rgba(46,227,122,.16), rgba(79,172,254,.06))}
+    .btn.bad{border-color:rgba(255,77,77,.35);background:linear-gradient(145deg, rgba(255,77,77,.14), rgba(255,255,255,.03))}
+    .btn:disabled{opacity:.55;cursor:not-allowed;transform:none}
+
+    /* 3-column play layout */
+    .play-row{
+        width:100%;
+        display:grid;
+
+        /* left fixed-ish, center fits board, right fixed-ish */
+        grid-template-columns: 320px max-content 420px;
+
+        justify-content: center;   /* centers the whole 3-column group */
+        gap:16px;
+        align-items:start;
+    }
+    @media (max-width: 1250px){
+        .play-row{
+            grid-template-columns: 320px 1fr 360px; /* allow board to flex a bit */
         }
+    }
 
-        body {
-            background: #0a0a0a; /* Static dark background */
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            font-family: 'Poppins', sans-serif;
-            color: #ffffff;
-            overflow-x: auto;
-            position: relative;
+    @media (max-width: 1100px){
+        .play-row{
+            grid-template-columns: 1fr; /* stack panels */
         }
-
-        /* Header with buttons */
-        .header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            width: 100%;
-            max-width: 900px;
-            padding: 20px 30px;
-            margin-bottom: 20px;
-            background: linear-gradient(90deg, rgba(10,10,10,0.9), rgba(20,20,46,0.9));
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-        }
-
-        .header-left {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-        }
-
-        .header-right {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-        }
-
-        /* Button Styles - Matching Tambola+ design */
-        .header-btn {
-            background: linear-gradient(145deg, #1e1e2e, #2a2a3e);
-            color: #ffffff;
-            border: 1px solid rgba(255,255,255,0.2);
-            padding: 12px 24px;
-            border-radius: 12px;
-            font-family: 'Poppins', sans-serif;
-            font-weight: 500;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            backdrop-filter: blur(10px);
-            box-shadow: 
-                0 4px 15px rgba(0,0,0,0.3),
-                inset 0 1px 0 rgba(255,255,255,0.1);
-        }
-
-        .header-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: left 0.5s;
-        }
-
-        .header-btn:hover::before {
-            left: 100%;
-        }
-
-        .header-btn:hover {
-            background: linear-gradient(145deg, #2a2a3e, #3a3a5e);
-            border-color: rgba(255,255,255,0.4);
-            transform: translateY(-2px);
-            box-shadow: 
-                0 8px 25px rgba(0,0,0,0.4),
-                inset 0 1px 0 rgba(255,255,255,0.2);
-        }
-
-        .header-btn:active {
-            transform: translateY(0);
-        }
-
-        /* Title Styling */
-        .game-title {
-            font-family: 'Cinzel', serif;
-            font-size: clamp(2rem, 4vw, 3rem);
-            background: linear-gradient(45deg, #ffd700, #ffed4e, #ff6b35);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-align: center;
-            letter-spacing: 1px;
-            flex: 1;
-            margin: 0 20px;
-        }
-
-        .subtitle {
-            font-size: 0.9rem;
-            opacity: 0.8;
-            color: #b8b8b8;
-            text-align: center;
-            margin-top: 5px;
-            font-weight: 300;
-        }
-
-        .game-container {
-            background: rgba(15, 15, 25, 0.95);
-            backdrop-filter: blur(20px);
-            border-radius: 25px;
-            padding: 30px;
-            box-shadow: 
-                0 25px 50px rgba(0,0,0,0.7),
-                inset 0 1px 0 rgba(255,255,255,0.15);
-            border: 1px solid rgba(255,255,255,0.08);
-            margin: 0 20px;
-        }
-
-        /* Modal Styles */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.85);
-            backdrop-filter: blur(10px);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .modal-content {
-            background: linear-gradient(145deg, #1a1a2e, #16213e);
-            border-radius: 20px;
-            padding: 40px;
-            max-width: 90%;
-            max-height: 80%;
-            overflow-y: auto;
-            border: 1px solid rgba(255,255,255,0.15);
-            box-shadow: 0 30px 60px rgba(0,0,0,0.8);
-            position: relative;
-        }
-
-        .modal h2 {
-            margin-bottom: 20px;
-            color: #ffd700;
-            font-family: 'Cinzel', serif;
-        }
-
-        .modal ul {
-            list-style: none;
-            padding-left: 0;
-        }
-
-        .modal li {
-            padding: 12px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            position: relative;
-            padding-left: 25px;
-        }
-
-        .modal li::before {
-            content: '✦';
-            position: absolute;
-            left: 0;
-            color: #4facfe;
-            font-weight: bold;
-        }
-
-        .rules-grid-beauty{
-            display:grid;
-            grid-template-columns:repeat(2, minmax(240px, 1fr));
-            gap:14px;
-            margin-top:18px;
-        }
-        @media (max-width: 700px){
-            .rules-grid-beauty{ grid-template-columns:1fr; }
-        }
-
-        .rule-pack{
-            border:1px solid rgba(255,255,255,0.14);
-            border-radius:18px;
-            padding:16px;
-            background:rgba(255,255,255,0.06);
-            box-shadow:0 10px 25px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.10);
-            min-height:140px;
-        }
-
-        .rule-pack-head{
-            display:flex;
-            align-items:center;
-            gap:10px;
-            margin-bottom:6px;
-        }
-
-        .rule-pack-no{
-            width:34px;
-            height:34px;
-            border-radius:999px;
-            display:inline-flex;
-            align-items:center;
-            justify-content:center;
-            font-weight:800;
-            color:#1a1a1a;
-            background:linear-gradient(45deg, #ffd700, #ffed4e, #ff6b35);
-            box-shadow:0 10px 25px rgba(0,0,0,0.35);
-            flex:0 0 auto;
-        }
-
-        .rule-pack h3{
-            margin:0;
-            font-size:1.05rem;
-            letter-spacing:0.3px;
-            color:#ffd700;
-            font-family:Cinzel, serif;
-        }
-
-        .rule-pack-sub{
-            margin:0 0 12px 44px;
-            opacity:0.82;
-            font-size:0.92rem;
-            line-height:1.35;
-        }
-
-        .rule-pack-body{
-            margin-left:4px;
-            background:rgba(79,172,254,0.08);
-            border:1px solid rgba(79,172,254,0.18);
-            border-radius:14px;
-            padding:12px 12px;
-        }
-
-        .rule-line{
-            display:flex;
-            gap:10px;
-            padding:8px 6px;
-            border-bottom:1px solid rgba(255,255,255,0.10);
-        }
-        .rule-line:last-child{ border-bottom:none; }
-
-        .rule-line .k{
-            width:120px;
-            flex:0 0 auto;
-            font-weight:700;
-            opacity:0.95;
-            color:#cfe9ff;
-        }
-        .rule-line .v{
-            flex:1;
-            opacity:0.92;
-            line-height:1.35;
-            color:#ffffff;
-        }
-
-        .close-btn {
-            position: absolute;
-            top: 20px;
-            right: 25px;
-            background: none;
-            border: none;
-            font-size: 28px;
-            color: #aaa;
-            cursor: pointer;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-        }
-
-        .close-btn:hover {
-            color: #fff;
-            background: rgba(255,255,255,0.1);
-            transform: rotate(90deg);
-        }
-
-        .game-grid {
-            display: grid;
-            grid-template-columns: repeat(7, clamp(70px, 10vw, 90px));
-            grid-template-rows: repeat(7, clamp(70px, 10vw, 90px));
-            gap: 6px;
-            justify-content: center;
-        }
-
-        /* Rest of the cell and piece styles remain the same */
-        .cell {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-weight: 600;
-            font-size: clamp(1rem, 2vw, 1.4rem);
-            border-radius: 16px;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow:
-                0 8px 25px rgba(0,0,0,0.4),
-                inset 0 1px 0 rgba(255,255,255,0.2);
-
-            /* ADD THESE (for multiple pieces in one cell) */
-            flex-wrap: wrap;
-            align-content: center;
-            gap: 4px;
-            padding: 6px;
-        }
-        /* Shrink pieces only when they are placed on numbered board cells */
-        .cell .piece {
-            width: clamp(22px, 3.2vw, 30px);
-            height: clamp(22px, 3.2vw, 30px);
-            font-size: clamp(12px, 2vw, 16px);
-        }
-        .piece.current-turn {
-            box-shadow:
-                0 0 0 3px rgba(255,255,255,0.70),
-                0 0 18px rgba(180,110,255,0.90),
-                0 10px 25px rgba(0,0,0,0.45) !important;
-            transform: scale(1.05);
-        }
+        .side{ position: static; }
+    }
 
 
-        .empty { 
-            background: rgba(30,30,40,0.5);
-            cursor: default;
-        }
+    /* Make center actually consume its column */
+    .center{
+        width:100%;
+        display:flex;
+        justify-content:center;
+    }
 
-        .outer { 
-            background: linear-gradient(135deg, #8e0000, #b71c1c);
-            border: 2px solid rgba(255,100,100,0.5);
-            box-shadow: 0 0 20px rgba(183,28,28,0.6);
-        }
+    /* Panels should fill their own column */
+    #rollPanel, #movePanel{
+        width:100%;
+    }
 
-        .inner { 
-            background: linear-gradient(135deg, #002f6c, #0d47a1);
-            border: 2px solid rgba(100,150,255,0.6);
-            box-shadow: 0 0 25px rgba(13,71,161,0.7);
-        }
+    .card{
+      background:var(--panel);
+      border:1px solid var(--stroke);
+      border-radius:var(--radius-xl);
+      box-shadow:var(--shadow2);
+      backdrop-filter:blur(18px);
+      padding:14px;
+    }
 
-        .safe { 
-            background: linear-gradient(135deg, #0b6623, #2e7d32);
-            border: 2px solid rgba(76,175,80,0.8);
-            box-shadow: 
-                0 0 25px rgba(46,125,50,0.9),
-                inset 0 0 15px rgba(0,255,0,0.3);
-            animation: safePulse 3s ease-in-out infinite;
-        }
+    .pill{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:8px 10px;border-radius:999px;border:1px solid var(--stroke);
+      background:rgba(255,255,255,.04);font-weight:800;font-size:13px;
+    }
+    .dot{width:10px;height:10px;border-radius:999px;background:var(--blue);box-shadow:0 0 0 3px rgba(79,172,254,.15)}
+    .dot.red{background:#ff3b3b;box-shadow:0 0 0 3px rgba(255,59,59,.16)}
+    .dot.blue{background:#2f7bff;box-shadow:0 0 0 3px rgba(47,123,255,.16)}
+    .dot.green{background:#35c46a;box-shadow:0 0 0 3px rgba(53,196,106,.16)}
+    .dot.yellow{background:#ffd33d;box-shadow:0 0 0 3px rgba(255,211,61,.16)}
 
-        @keyframes safePulse {
-            0%, 100% { box-shadow: 0 0 25px rgba(46,125,50,0.9), inset 0 0 15px rgba(0,255,0,0.3); }
-            50% { box-shadow: 0 0 35px rgba(46,125,50,1), inset 0 0 25px rgba(0,255,0,0.5); }
-        }
+    .hud-top{display:flex;gap:10px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
+    .hud-title{font-weight:900;font-size:13.5px;color:var(--muted);margin:10px 0 8px;letter-spacing:.2px}
 
-        .core { 
-            background: linear-gradient(45deg, #ffd700, #ffed4e, #ff6b35);
-            color: #1a1a1a;
-            font-weight: 800;
-            border: 3px solid rgba(255,215,0,1);
-            box-shadow: 
-                0 0 40px rgba(255,215,0,1),
-                inset 0 0 20px rgba(255,255,255,0.8);
-            animation: coreRotate 4s linear infinite;
-        }
+    .kv{
+      display:grid;grid-template-columns: 130px 1fr;gap:8px 12px;align-items:center;
+      padding:10px;border-radius:var(--radius-lg);
+      border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.04);
+    }
+    .k{color:rgba(255,255,255,.80);font-weight:800;font-size:13px}
+    .v{color:rgba(255,255,255,.92);font-weight:800;font-size:13px}
 
-        @keyframes coreRotate {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
 
-        .base {
-            border-radius: 20px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            justify-content: center;
-            align-items: center;
-            padding: 12px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
-            border: 2px solid rgba(255,255,255,0.3);
-        }
+    .roll-strip{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .chip{
+      display:inline-flex;align-items:center;justify-content:center;min-width:40px;
+      padding:8px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.14);
+      background:rgba(255,255,255,.06);font-weight:900;letter-spacing:.2px;cursor:pointer;
+    }
+    .chip.eight{border-color:rgba(255,215,0,.35);background:linear-gradient(145deg, rgba(255,215,0,.20), rgba(255,107,53,.10))}
+    .chip.used{opacity:.38;text-decoration:line-through}
+    .chip.selected{box-shadow:0 0 0 3px rgba(255,215,0,.35)}
 
-        .base.red { background: linear-gradient(135deg, #b71c1c, #d32f2f); }
-        .base.blue { background: linear-gradient(135deg, #0d47a1, #1976d2); }
-        .base.green { background: linear-gradient(135deg, #1b5e20, #388e3c); }
-        .base.yellow { background: linear-gradient(135deg, #f9a825, #fbc02d); }
+    .sticks{display:flex;gap:8px;align-items:center;justify-content:flex-start;margin:10px 0 4px}
+    .stick{
+      width:28px;height:44px;border-radius:14px;border:1px solid rgba(255,255,255,.14);
+      background:rgba(255,255,255,.06);position:relative;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.12);
+    }
+    .stick.on{border-color:rgba(46,227,122,.35);background:linear-gradient(145deg, rgba(46,227,122,.18), rgba(255,255,255,.04))}
+    .stick::after{content:'';position:absolute;inset:0;background:radial-gradient(100px 80px at 50% 0%, rgba(255,255,255,.16), transparent 55%);opacity:.8}
+    .stick span{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-weight:900;font-size:14px;opacity:.85}
 
-        .piece {
-            width: clamp(28px, 4vw, 36px);
-            height: clamp(28px, 4vw, 36px);
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: clamp(14px, 2.5vw, 18px);
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 3px solid rgba(255,255,255,0.9);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
-        }
+    /* Board */
+    .board-shell{
+      background:var(--panel);
+      border:1px solid var(--stroke);
+      border-radius:var(--radius-xl);
+      padding:18px;
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(18px);
+    }
+    .game-grid{
+      display:grid;
+      grid-template-columns: repeat(7, clamp(64px, 9.6vw, 88px));
+      grid-template-rows: repeat(7, clamp(64px, 9.6vw, 88px));
+      gap:6px;justify-content:center;
+    }
+    .cell{
+      display:flex;justify-content:center;align-items:center;
+      font-weight:900;font-size:clamp(1rem,2vw,1.35rem);
+      border-radius:16px;position:relative;overflow:hidden;
+      transition:all .28s cubic-bezier(.4,0,.2,1);
+      box-shadow:0 8px 25px rgba(0,0,0,.38), inset 0 1px 0 rgba(255,255,255,.18);
+      flex-wrap:wrap;align-content:center;gap:4px;padding:6px;user-select:none;
+    }
+    body.no-anim .cell,body.no-anim .piece,body.no-anim .btn{transition:none!important;animation:none!important}
 
-        .piece:hover {
-            transform: scale(1.15) rotate(10deg);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-        }
+    .empty{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.04)}
+    .outer{background:linear-gradient(135deg,#8e0000,#b71c1c);border:2px solid rgba(255,100,100,.45);box-shadow:0 0 18px rgba(183,28,28,.55)}
+    .inner{background:linear-gradient(135deg,#002f6c,#0d47a1);border:2px solid rgba(100,150,255,.58);box-shadow:0 0 22px rgba(13,71,161,.65)}
+    .safe{background:linear-gradient(135deg,#0b6623,#2e7d32);border:2px solid rgba(76,175,80,.75);box-shadow:0 0 22px rgba(46,125,50,.85), inset 0 0 12px rgba(0,255,0,.22);animation:safePulse 3s ease-in-out infinite}
+    @keyframes safePulse{0%,100%{box-shadow:0 0 22px rgba(46,125,50,.85), inset 0 0 12px rgba(0,255,0,.22)}50%{box-shadow:0 0 32px rgba(46,125,50,1), inset 0 0 20px rgba(0,255,0,.35)}}
+    .core{background:linear-gradient(45deg,var(--gold1),var(--gold2),var(--gold3));color:#1a1a1a;font-weight:900;border:3px solid rgba(255,215,0,1);box-shadow:0 0 40px rgba(255,215,0,.9), inset 0 0 20px rgba(255,255,255,.72);animation:coreRotate 4s linear infinite}
+    @keyframes coreRotate{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
 
-        /* Player identity on pieces */
-        .piece.p-red    { border-color: rgba(255,80,80,0.95); box-shadow: 0 0 18px rgba(255,60,60,0.55), 0 6px 20px rgba(0,0,0,0.4); }
-        .piece.p-blue   { border-color: rgba(80,160,255,0.95); box-shadow: 0 0 18px rgba(60,140,255,0.55), 0 6px 20px rgba(0,0,0,0.4); }
-        .piece.p-green  { border-color: rgba(90,220,120,0.95); box-shadow: 0 0 18px rgba(60,200,110,0.55), 0 6px 20px rgba(0,0,0,0.4); }
-        .piece.p-yellow { border-color: rgba(255,215,80,0.98); box-shadow: 0 0 18px rgba(255,205,60,0.55), 0 6px 20px rgba(0,0,0,0.4); }
+    .base{
+      border-radius:20px;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;padding:12px;
+      box-shadow:0 15px 35px rgba(0,0,0,.46);border:2px solid rgba(255,255,255,.26);position:relative;overflow:hidden;
+    }
+    .base::after{content:'';position:absolute;inset:0;background:radial-gradient(200px 120px at 30% 10%, rgba(255,255,255,.16), transparent 55%);opacity:.85;pointer-events:none}
+    .base.red{background:linear-gradient(135deg,#b71c1c,#d32f2f)}
+    .base.blue{background:linear-gradient(135deg,#0d47a1,#1976d2)}
+    .base.green{background:linear-gradient(135deg,#1b5e20,#388e3c)}
+    .base.yellow{background:linear-gradient(135deg,#f9a825,#fbc02d)}
 
-        /* Small badge so color is obvious even for white knights */
-        .piece::after {
-            content: "";
-            position: absolute;
-            top: -6px;
-            right: -6px;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            border: 2px solid rgba(255,255,255,0.85);
-            background: rgba(255,255,255,0.25);
-        }
+    .piece{
+      width:calc(clamp(28px,4vw,36px) * var(--pieceScale));
+      height:calc(clamp(28px,4vw,36px) * var(--pieceScale));
+      border-radius:50%;
+      display:flex;justify-content:center;align-items:center;
+      font-size:calc(clamp(14px,2.5vw,18px) * var(--pieceScale));
+      font-weight:900;cursor:pointer;transition:transform .18s ease, box-shadow .18s ease, filter .18s ease;
+      border:3px solid rgba(255,255,255,.9);box-shadow:0 6px 18px rgba(0,0,0,.40);position:relative;z-index:2;user-select:none;
+    }
+    .cell .piece{
+      width:calc(clamp(22px,3.2vw,30px) * var(--pieceScale));
+      height:calc(clamp(22px,3.2vw,30px) * var(--pieceScale));
+      font-size:calc(clamp(12px,2vw,16px) * var(--pieceScale));
+    }
+    .piece:hover{transform:scale(1.12) rotate(6deg);filter:brightness(1.02)}
+    .piece.current-turn{box-shadow:0 0 0 3px rgba(255,255,255,.72), 0 0 18px rgba(180,110,255,.75), 0 10px 25px rgba(0,0,0,.35)!important;transform:scale(1.06)}
+    .piece.selected{box-shadow:0 0 0 3px rgba(255,215,0,.72), 0 0 22px rgba(255,215,0,.45), 0 10px 25px rgba(0,0,0,.35)!important;transform:scale(1.08)}
+    .piece.p-red{border-color:rgba(255,80,80,.95);box-shadow:0 0 16px rgba(255,60,60,.48), 0 6px 18px rgba(0,0,0,.36)}
+    .piece.p-blue{border-color:rgba(80,160,255,.95);box-shadow:0 0 16px rgba(60,140,255,.48), 0 6px 18px rgba(0,0,0,.36)}
+    .piece.p-green{border-color:rgba(90,220,120,.95);box-shadow:0 0 16px rgba(60,200,110,.48), 0 6px 18px rgba(0,0,0,.36)}
+    .piece.p-yellow{border-color:rgba(255,215,80,.98);box-shadow:0 0 16px rgba(255,205,60,.48), 0 6px 18px rgba(0,0,0,.36)}
+    .piece::after{content:"";position:absolute;top:-6px;right:-6px;width:12px;height:12px;border-radius:999px;border:2px solid rgba(255,255,255,.85);background:rgba(255,255,255,.25)}
+    .piece.p-red::after{background:#ff3b3b}
+    .piece.p-blue::after{background:#2f7bff}
+    .piece.p-green::after{background:#35c46a}
+    .piece.p-yellow::after{background:#ffd33d}
+    .knight{background:linear-gradient(135deg,#ffffff,#ededed);color:#333}
+    .king{background:linear-gradient(135deg,#1a1a1a,#333);color:var(--gold1);box-shadow:0 0 18px rgba(255,215,0,.7)}
 
-        .piece.p-red::after    { background: #ff3b3b; }
-        .piece.p-blue::after   { background: #2f7bff; }
-        .piece.p-green::after  { background: #35c46a; }
-        .piece.p-yellow::after { background: #ffd33d; }
+    /* Modals */
+    .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.78);backdrop-filter:blur(10px);z-index:1000;align-items:center;justify-content:center;padding:18px;animation:fadeIn .2s ease}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    .modal-content{
+      width:min(980px,95vw);max-height:86vh;overflow:auto;
+      background:linear-gradient(145deg, rgba(26,26,46,.95), rgba(14,18,34,.95));
+      border-radius:var(--radius-xl);border:1px solid var(--stroke);box-shadow:var(--shadow);padding:22px 20px;position:relative;
+    }
+    .modal h2{margin-bottom:12px;color:var(--gold1);font-family:'Cinzel',serif;letter-spacing:.3px}
+    .close-btn{
+      position:absolute;top:14px;right:14px;width:42px;height:42px;border-radius:999px;border:1px solid var(--stroke);
+      background:rgba(255,255,255,.05);color:rgba(255,255,255,.85);font-size:22px;cursor:pointer;transition:transform .18s ease, background .18s ease;
+    }
+    .close-btn:hover{transform:rotate(90deg);background:rgba(255,255,255,.09)}
 
+    .settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+    .field{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);border-radius:var(--radius-lg);padding:12px}
+    .field label{display:flex;flex-direction:column;gap:8px;font-weight:900;font-size:13px;color:rgba(255,255,255,.86)}
+    .field .hint{font-weight:650;font-size:12px;color:rgba(255,255,255,.62);margin-top:6px;line-height:1.35}
+    select,input[type="range"]{width:100%;padding:10px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.20);color:#fff;outline:none}
+    input[type="checkbox"]{transform:scale(1.1)}
 
-        .knight {
-            background: linear-gradient(135deg, #ffffff, #f0f0f0);
-            color: #333;
-        }
+    /* Toasts */
+    .toasts{position:fixed;bottom:16px;right:16px;display:flex;flex-direction:column;gap:10px;z-index:2000;width:min(360px,92vw);pointer-events:none}
+    .toast{
+      border-radius:16px;padding:12px;border:1px solid rgba(255,255,255,.14);
+      background:rgba(18,18,30,.88);box-shadow:0 16px 40px rgba(0,0,0,.45);backdrop-filter:blur(16px);
+      animation:toastIn .16s ease;
+    }
+    @keyframes toastIn{from{transform:translateY(8px);opacity:0}to{transform:translateY(0);opacity:1}}
+    .toast .t-title{font-weight:900;font-size:13px;margin-bottom:4px}
+    .toast .t-msg{font-weight:750;font-size:12.5px;color:rgba(255,255,255,.78);line-height:1.35}
+    .toast.good{border-color:rgba(46,227,122,.35)}
+    .toast.bad{border-color:rgba(255,77,77,.35)}
+    .toast.warn{border-color:rgba(255,215,0,.35)}
 
-        .king {
-            background: linear-gradient(135deg, #1a1a1a, #333);
-            color: #ffd700;
-            box-shadow: 0 0 20px rgba(255,215,0,0.8);
-        }
+    /* Rules cards (kept) */
+    .rules-grid-beauty{display:grid;grid-template-columns:repeat(2,minmax(240px,1fr));gap:14px;margin-top:16px}
+    @media (max-width:700px){.rules-grid-beauty{grid-template-columns:1fr}}
+    .rule-pack{border:1px solid rgba(255,255,255,.14);border-radius:18px;padding:16px;background:rgba(255,255,255,.06);box-shadow:0 10px 25px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.10)}
+    .rule-pack-head{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+    .rule-pack-no{width:34px;height:34px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;font-weight:900;color:#1a1a1a;background:linear-gradient(45deg,var(--gold1),var(--gold2),var(--gold3));box-shadow:0 10px 25px rgba(0,0,0,.35)}
+    .rule-pack h3{margin:0;font-size:1.05rem;color:var(--gold1);font-family:'Cinzel',serif}
+    .rule-pack-sub{margin:0 0 12px 44px;opacity:.82;font-size:.92rem;line-height:1.35;color:rgba(255,255,255,.78)}
+    .rule-pack-body{margin-left:4px;background:rgba(79,172,254,.08);border:1px solid rgba(79,172,254,.18);border-radius:14px;padding:12px}
+    .rule-line{display:flex;gap:10px;padding:8px 6px;border-bottom:1px solid rgba(255,255,255,.10)}
+    .rule-line:last-child{border-bottom:none}
+    .rule-line .k{width:120px;flex:0 0 auto;font-weight:900;color:#cfe9ff;font-size:13px}
+    .rule-line .v{flex:1;font-weight:750;color:#fff;font-size:13px;line-height:1.35}
 
-        @media (max-width: 768px) {
-            .header {
-                flex-direction: column;
-                gap: 15px;
-                padding: 15px 20px;
-            }
-            
-            .header-left, .header-right {
-                width: 100%;
-                justify-content: center;
-            }
-            
-            .game-title {
-                margin: 0;
-            }
-        }
-    </style>
+  </style>
 </head>
-<body>
-    <!-- Header with Settings (left) and Rules (right) buttons -->
+
+<body data-theme="dark">
+  <div class="wrap">
+
+    <!-- Header -->
     <div class="header">
-        <div class="header-left">
-            <button class="header-btn" id="settingsBtn">⚙️ Settings</button>
-        </div>
-        
-        <div class="game-title">
-            AstaChemma
-            <div class="subtitle">Traditional Strategy Masterpiece</div>
-        </div>
-        
-        <div class="header-right">
-            <button class="header-btn" id="rulesBtn">📜 Rules</button>
-        </div>
+      <div class="header-left">
+        <button class="btn" id="settingsBtn">⚙️ Settings</button>
+        <button class="btn" id="newGameBtn">🔄 New Game</button>
+      </div>
+
+      <div class="game-title">
+        AstaChemma
+        <div class="subtitle">Strategic • Punishing • Mathematical</div>
+      </div>
+
+      <div class="header-right">
+        <button class="btn" id="rulesBtn">📜 Rules</button>
+      </div>
     </div>
 
-    <div class="game-container">
-        <div class="game-grid">
+    <!-- Play Row: Left Roll, Center Board, Right Move -->
+    <div class="play-row">
+
+      <!-- LEFT: Roll Panel -->
+      <div class="side card" id="rollPanel">
+        <div class="hud-top">
+          <div class="pill"><span class="dot" id="playerDot"></span><span id="hudPlayer">Current: RED</span></div>
+          <div class="pill"><span id="hudPhase">PHASE: ROLL</span></div>
+          <div class="pill"><span id="hudRollsLeft">ROLLS LEFT: 1</span></div>
+        </div>
+
+        <div class="hud-title">Turn Info</div>
+        <div class="kv">
+          <div class="k">Turn total</div><div class="v"><span id="hudTotal">0</span> / 32</div>
+          <div class="k">Illegal streak</div><div class="v"><span id="hudIllegal">0</span></div>
+          <div class="k">Eliminations</div><div class="v"><span id="hudKills">0</span></div>
+          <div class="k">Placed</div><div class="v"><span id="hudPlaced">0</span></div>
+        </div>
+
+        <div class="hud-title">5-stick roll</div>
+        <div class="sticks" id="sticksRow" aria-label="stick roll">
+          <div class="stick"><span>–</span></div><div class="stick"><span>–</span></div><div class="stick"><span>–</span></div><div class="stick"><span>–</span></div><div class="stick"><span>–</span></div>
+        </div>
+
+        <div class="hud-title">Roll chunks</div>
+        <div class="roll-strip" id="rollStrip"></div>
+
+        <div class="actions">
+          <button class="btn primary" id="rollBtn">🎲 Roll</button>
+          <button class="btn" id="toMoveBtn">➡ Move Phase</button>
+          <button class="btn bad" id="endTurnBtn">⏭ End Turn</button>
+        </div>
+
+        <div style="margin-top:10px;color:rgba(255,255,255,.74);font-size:13px;line-height:1.45;font-weight:650;">
+          Reroll only if you roll <b>8</b>, capture a piece, or reach <b>25</b>.
+        </div>
+      </div>
+
+      <!-- CENTER: Board -->
+      <div class="center" id="boardPanel">
+        <div class="board-shell">
+          <div class="game-grid" id="board">
+
             <!-- Row 1 -->
             <div class="empty cell"></div>
             <div class="empty cell"></div>
             <div class="empty cell"></div>
-            <div class="base red">
-                <div class="piece knight" data-type="knight" data-player="red">♞</div>
-                <div class="piece knight" data-type="knight" data-player="red">♞</div>
-                <div class="piece knight" data-type="knight" data-player="red">♞</div>
-                <div class="piece king" data-type="king" data-player="red">👑</div>
+            <div class="base red" data-base="red">
+              <div class="piece knight p-red" data-type="knight" data-player="red">♞</div>
+              <div class="piece knight p-red" data-type="knight" data-player="red">♞</div>
+              <div class="piece knight p-red" data-type="knight" data-player="red">♞</div>
+              <div class="piece king p-red" data-type="king" data-player="red">👑</div>
             </div>
             <div class="empty cell"></div>
             <div class="empty cell"></div>
@@ -521,680 +390,974 @@
 
             <!-- Row 2 -->
             <div class="empty cell"></div>
-            <div class="outer cell">15</div>
-            <div class="outer cell">16</div>
-            <div class="safe cell">1</div>
-            <div class="outer cell">2</div>
-            <div class="outer cell">3</div>
+            <div class="outer cell cell15">15</div>
+            <div class="outer cell cell16">16</div>
+            <div class="safe cell cell1">1</div>
+            <div class="outer cell cell2">2</div>
+            <div class="outer cell cell3">3</div>
             <div class="empty cell"></div>
 
             <!-- Row 3 -->
             <div class="empty cell"></div>
-            <div class="outer cell">14</div>
-            <div class="inner cell">17</div>
-            <div class="safe cell">18</div>
-            <div class="inner cell">19</div>
-            <div class="outer cell">4</div>
+            <div class="outer cell cell14">14</div>
+            <div class="inner cell cell17">17</div>
+            <div class="safe cell cell18">18</div>
+            <div class="inner cell cell19">19</div>
+            <div class="outer cell cell4">4</div>
             <div class="empty cell"></div>
 
             <!-- Row 4 -->
-            <div class="base green">
-                <div class="piece knight" data-type="knight" data-player="green">♞</div>
-                <div class="piece knight" data-type="knight" data-player="green">♞</div>
-                <div class="piece knight" data-type="knight" data-player="green">♞</div>
-                <div class="piece king" data-type="king" data-player="green">👑</div>
+            <div class="base green" data-base="green">
+              <div class="piece knight p-green" data-type="knight" data-player="green">♞</div>
+              <div class="piece knight p-green" data-type="knight" data-player="green">♞</div>
+              <div class="piece knight p-green" data-type="knight" data-player="green">♞</div>
+              <div class="piece king p-green" data-type="king" data-player="green">👑</div>
             </div>
-            <div class="safe cell">13</div>
-            <div class="safe cell">24</div>
-            <div class="core cell">25</div>
-            <div class="safe cell">20</div>
-            <div class="safe cell">5</div>
-            <div class="base blue">
-                <div class="piece knight" data-type="knight" data-player="blue">♞</div>
-                <div class="piece knight" data-type="knight" data-player="blue">♞</div>
-                <div class="piece knight" data-type="knight" data-player="blue">♞</div>
-                <div class="piece king" data-type="king" data-player="blue">👑</div>
+            <div class="safe cell cell13">13</div>
+            <div class="safe cell cell24">24</div>
+            <div class="core cell cell25">25</div>
+            <div class="safe cell cell20">20</div>
+            <div class="safe cell cell5">5</div>
+            <div class="base blue" data-base="blue">
+              <div class="piece knight p-blue" data-type="knight" data-player="blue">♞</div>
+              <div class="piece knight p-blue" data-type="knight" data-player="blue">♞</div>
+              <div class="piece knight p-blue" data-type="knight" data-player="blue">♞</div>
+              <div class="piece king p-blue" data-type="king" data-player="blue">👑</div>
             </div>
 
             <!-- Row 5 -->
             <div class="empty cell"></div>
-            <div class="outer cell">12</div>
-            <div class="inner cell">23</div>
-            <div class="safe cell">22</div>
-            <div class="inner cell">21</div>
-            <div class="outer cell">6</div>
+            <div class="outer cell cell12">12</div>
+            <div class="inner cell cell23">23</div>
+            <div class="safe cell cell22">22</div>
+            <div class="inner cell cell21">21</div>
+            <div class="outer cell cell6">6</div>
             <div class="empty cell"></div>
 
             <!-- Row 6 -->
             <div class="empty cell"></div>
-            <div class="outer cell">11</div>
-            <div class="outer cell">10</div>
-            <div class="safe cell">9</div>
-            <div class="outer cell">8</div>
-            <div class="outer cell">7</div>
+            <div class="outer cell cell11">11</div>
+            <div class="outer cell cell10">10</div>
+            <div class="safe cell cell9">9</div>
+            <div class="outer cell cell8">8</div>
+            <div class="outer cell cell7">7</div>
             <div class="empty cell"></div>
 
             <!-- Row 7 -->
             <div class="empty cell"></div>
             <div class="empty cell"></div>
             <div class="empty cell"></div>
-            <div class="base yellow">
-                <div class="piece knight" data-type="knight" data-player="yellow">♞</div>
-                <div class="piece knight" data-type="knight" data-player="yellow">♞</div>
-                <div class="piece knight" data-type="knight" data-player="yellow">♞</div>
-                <div class="piece king" data-type="king" data-player="yellow">👑</div>
+            <div class="base yellow" data-base="yellow">
+              <div class="piece knight p-yellow" data-type="knight" data-player="yellow">♞</div>
+              <div class="piece knight p-yellow" data-type="knight" data-player="yellow">♞</div>
+              <div class="piece knight p-yellow" data-type="knight" data-player="yellow">♞</div>
+              <div class="piece king p-yellow" data-type="king" data-player="yellow">👑</div>
             </div>
             <div class="empty cell"></div>
             <div class="empty cell"></div>
             <div class="empty cell"></div>
-        </div>
-    </div>
 
-    <!-- Rules Modal (Grouped + Beautiful cards like your example) -->
-    <div id="rulesModal" class="modal">
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Move Panel -->
+      <div class="side card" id="movePanel">
+        <div class="hud-title">Move Assignment</div>
+
+        <div class="kv">
+          <div class="k">Selected roll</div><div class="v" id="selRoll">None</div>
+          <div class="k">Selected piece</div><div class="v" id="selPiece">None</div>
+          <div class="k">8 split mode</div><div class="v" id="splitMode">Off</div>
+          <div class="k">Hint</div><div class="v" id="hintText">Roll → Move. Use all roll-chunks.</div>
+        </div>
+
+        <div class="actions">
+          <button class="btn good" id="applyMoveBtn">➡ Apply</button>
+          <button class="btn" id="toggleSplitBtn">8 → 4+4</button>
+          <button class="btn" id="clearSelectBtn">Clear</button>
+        </div>
+
+        <div class="hud-title">Rules enforced</div>
+        <div style="color:rgba(255,255,255,.74);font-size:13px;line-height:1.45;font-weight:650;">
+          Type-locked combat, inner lock (needs 1 capture), king even-only, safe zones no kill, overshoot illegal.
+          If after rolling, your unused roll-chunks have <b>no legal moves</b>, your turn auto-ends.
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Rules Modal -->
+  <div id="rulesModal" class="modal">
     <div class="modal-content">
-        <button class="close-btn" id="closeRulesBtn">&times;</button>
-        <h2>AstaChemma Rules</h2>
+      <button class="close-btn" id="closeRulesBtn">&times;</button>
+      <h2>AstaChemma Rules</h2>
 
-        <div class="rules-grid rules-grid-beauty">
-
-        <!-- 1 -->
+      <div class="rules-grid rules-grid-beauty">
         <div class="rule-pack">
-            <div class="rule-pack-head">
-            <span class="rule-pack-no">1</span>
-            <h3>Setup</h3>
-            </div>
-            <p class="rule-pack-sub">Players, pieces, and core board structure.</p>
-
-            <div class="rule-pack-body">
-            <div class="rule-line"><span class="k">Players</span><span class="v">2–4 (default 4), clockwise turns.</span></div>
-            <div class="rule-line"><span class="k">Pieces</span><span class="v">3 Knights + 1 King per player, all start at Base (0).</span></div>
-            <div class="rule-line"><span class="k">Track</span><span class="v">Path 1–24, Core 25 (exact landing).</span></div>
-            </div>
+          <div class="rule-pack-head"><span class="rule-pack-no">1</span><h3>Rerolls</h3></div>
+          <p class="rule-pack-sub">Only specific events grant another roll.</p>
+          <div class="rule-pack-body">
+            <div class="rule-line"><span class="k">Reroll on</span><span class="v">Roll 8, Capture, or Reaching 25.</span></div>
+            <div class="rule-line"><span class="k">No other</span><span class="v">No other condition gives another roll.</span></div>
+          </div>
         </div>
 
-        <!-- 2 -->
         <div class="rule-pack">
-            <div class="rule-pack-head">
-            <span class="rule-pack-no">2</span>
-            <h3>Movement Basics</h3>
-            </div>
-            <p class="rule-pack-sub">Landing rules, stacking, and safe squares.</p>
-
-            <div class="rule-pack-body">
-            <div class="rule-line"><span class="k">Landing matters</span><span class="v">Passing does nothing; only landing is checked.</span></div>
-            <div class="rule-line"><span class="k">No stacking</span><span class="v">Only one piece per normal square.</span></div>
-            <div class="rule-line"><span class="k">Stack allowed</span><span class="v">Only in Base and Safe Zones.</span></div>
-            <div class="rule-line"><span class="k">Blocking</span><span class="v">Only blocks landing; passing through is allowed.</span></div>
-            </div>
+          <div class="rule-pack-head"><span class="rule-pack-no">2</span><h3>Teen Tigada</h3></div>
+          <p class="rule-pack-sub">Specific cancellation pattern.</p>
+          <div class="rule-pack-body">
+            <div class="rule-line"><span class="k">Rule</span><span class="v">8,8,8,3 in order cancels the whole turn.</span></div>
+          </div>
         </div>
 
-        <!-- 3 -->
         <div class="rule-pack">
-            <div class="rule-pack-head">
-            <span class="rule-pack-no">3</span>
-            <h3>Dice & Extra Rolls</h3>
-            </div>
-            <p class="rule-pack-sub">How rolling works and how turns extend.</p>
-
-            <div class="rule-pack-body">
-            <div class="rule-line"><span class="k">Dice</span><span class="v">Roll 1–8 (8 replaces classic 6).</span></div>
-            <div class="rule-line"><span class="k">Extra roll</span><span class="v">Roll 8 → extra roll.</span></div>
-            <div class="rule-line"><span class="k">Bonus roll</span><span class="v">Capture or reaching Core → bonus roll.</span></div>
-            <div class="rule-line"><span class="k">Turn cap</span><span class="v">Max accumulated score per turn = 32.</span></div>
-            </div>
+          <div class="rule-pack-head"><span class="rule-pack-no">3</span><h3>Roll system</h3></div>
+          <p class="rule-pack-sub">5 binary sticks map to 1–4 or 8.</p>
+          <div class="rule-pack-body">
+            <div class="rule-line"><span class="k">Mapping</span><span class="v">Sum 1–4 → 1–4; sum 0 or 5 → 8.</span></div>
+            <div class="rule-line"><span class="k">Cap</span><span class="v">Turn total max is 32.</span></div>
+          </div>
         </div>
 
-        <!-- 4 -->
         <div class="rule-pack">
-            <div class="rule-pack-head">
-            <span class="rule-pack-no">4</span>
-            <h3>Teen Tigada</h3>
-            </div>
-            <p class="rule-pack-sub">The brutal roll pattern.</p>
-
-            <div class="rule-pack-body">
-            <div class="rule-line">
-                <span class="k">Rule</span>
-                <span class="v">If you roll 8 + 8 + 8 + 3, the entire turn is cancelled.</span>
-            </div>
-            </div>
+          <div class="rule-pack-head"><span class="rule-pack-no">4</span><h3>Move chunks</h3></div>
+          <p class="rule-pack-sub">Only roll-chunks; special 8 split.</p>
+          <div class="rule-pack-body">
+            <div class="rule-line"><span class="k">Chunks</span><span class="v">Each roll is one chunk; no free splitting.</span></div>
+            <div class="rule-line"><span class="k">8 split</span><span class="v">8 may be used as 4+4 (double exit or exit+move).</span></div>
+          </div>
         </div>
-
-        <!-- 5 -->
-        <div class="rule-pack">
-            <div class="rule-pack-head">
-            <span class="rule-pack-no">5</span>
-            <h3>Roll → Then Move</h3>
-            </div>
-            <p class="rule-pack-sub">Strict two-phase turn system.</p>
-
-            <div class="rule-pack-body">
-            <div class="rule-line"><span class="k">Step 1</span><span class="v">Finish all rolls first (including extras/bonuses).</span></div>
-            <div class="rule-line"><span class="k">Step 2</span><span class="v">Movement phase begins only after rolling ends.</span></div>
-            </div>
-        </div>
-
-        <!-- 6 -->
-        <div class="rule-pack">
-            <div class="rule-pack-head">
-            <span class="rule-pack-no">6</span>
-            <h3>Score Splits & No Waste</h3>
-            </div>
-            <p class="rule-pack-sub">Your defining “strict math” system.</p>
-
-            <div class="rule-pack-body">
-            <div class="rule-line"><span class="k">No split</span><span class="v">A single roll cannot be split (4 ≠ 2+2).</span></div>
-            <div class="rule-line"><span class="k">Can split total</span><span class="v">Total accumulated score may be split into chunks across pieces.</span></div>
-            <div class="rule-line"><span class="k">No Waste</span><span class="v">If even 1 point is unusable, the entire turn is invalid.</span></div>
-            </div>
-        </div>
-
-        <!-- 7 -->
-        <div class="rule-pack">
-            <div class="rule-pack-head">
-            <span class="rule-pack-no">7</span>
-            <h3>Base Exit</h3>
-            </div>
-            <p class="rule-pack-sub">How pieces leave Base (0).</p>
-
-            <div class="rule-pack-body">
-            <div class="rule-line"><span class="k">Exit only</span><span class="v">Only on 4 or 8.</span></div>
-            <div class="rule-line"><span class="k">Double Knight exit</span><span class="v">8 may be used as 4+4 to exit two Knights (consumes full 8).</span></div>
-            </div>
-        </div>
-
-        <!-- 8 -->
-        <div class="rule-pack">
-            <div class="rule-pack-head">
-            <span class="rule-pack-no">8</span>
-            <h3>King Rules</h3>
-            </div>
-            <p class="rule-pack-sub">The King is expensive and even-locked.</p>
-
-            <div class="rule-pack-body">
-            <div class="rule-line"><span class="k">Even only</span><span class="v">King moves only on even chunks; odd chunks are illegal.</span></div>
-            <div class="rule-line"><span class="k">Cost</span><span class="v">King cost = 2 points per square (4 → 2 squares).</span></div>
-            </div>
-        </div>
-
-        <!-- 9 -->
-        <div class="rule-pack">
-            <div class="rule-pack-head">
-            <span class="rule-pack-no">9</span>
-            <h3>Combat & Safe Zones</h3>
-            </div>
-            <p class="rule-pack-sub">Type-locked eliminations.</p>
-
-            <div class="rule-pack-body">
-            <div class="rule-line"><span class="k">Type-locked</span><span class="v">Knight kills Knight only; King kills King only.</span></div>
-            <div class="rule-line"><span class="k">Landing</span><span class="v">Capture only by landing exactly on the enemy.</span></div>
-            <div class="rule-line"><span class="k">Safe Zones</span><span class="v">No elimination in Safe Zones; safe squares protect pieces.</span></div>
-            </div>
-        </div>
-
-        <!-- 10 -->
-        <div class="rule-pack">
-            <div class="rule-pack-head">
-            <span class="rule-pack-no">10</span>
-            <h3>Inner Lock</h3>
-            </div>
-            <p class="rule-pack-sub">Inner track requires blood.</p>
-
-            <div class="rule-pack-body">
-            <div class="rule-line"><span class="k">Unlock</span><span class="v">Inner track opens only after you eliminate at least 1 enemy piece.</span></div>
-            <div class="rule-line"><span class="k">Before unlock</span><span class="v">Landing in Inner is illegal.</span></div>
-            </div>
-        </div>
-
-        <!-- 11 -->
-        <div class="rule-pack">
-            <div class="rule-pack-head">
-            <span class="rule-pack-no">11</span>
-            <h3>Core & Overshoot</h3>
-            </div>
-            <p class="rule-pack-sub">Exact finish, no mercy.</p>
-
-            <div class="rule-pack-body">
-            <div class="rule-line"><span class="k">Exact entry</span><span class="v">Must land exactly on 25 to finish a piece.</span></div>
-            <div class="rule-line"><span class="k">Overshoot</span><span class="v">If a chunk makes position &gt; 25, that chunk is illegal and must be reassigned.</span></div>
-            <div class="rule-line"><span class="k">No Waste applies</span><span class="v">If reassignment is impossible, the entire turn becomes invalid.</span></div>
-            </div>
-        </div>
-
-        <!-- 12 -->
-        <div class="rule-pack">
-            <div class="rule-pack-head">
-            <span class="rule-pack-no">12</span>
-            <h3>Illegal Moves</h3>
-            </div>
-            <p class="rule-pack-sub">Consecutive mistakes have consequences.</p>
-
-            <div class="rule-pack-body">
-            <div class="rule-line"><span class="k">1st</span><span class="v">Warning.</span></div>
-            <div class="rule-line"><span class="k">2nd</span><span class="v">Hint (spoiler).</span></div>
-            <div class="rule-line"><span class="k">3rd</span><span class="v">Turn skipped; counter resets after the skip or after a valid move.</span></div>
-            </div>
-        </div>
-
-        <!-- 13 -->
-        <div class="rule-pack">
-            <div class="rule-pack-head">
-            <span class="rule-pack-no">13</span>
-            <h3>Winning</h3>
-            </div>
-            <p class="rule-pack-sub">Placements, not just one winner.</p>
-
-            <div class="rule-pack-body">
-            <div class="rule-line"><span class="k">Finish</span><span class="v">First to finish all 4 pieces = 1st place; then 2nd, then 3rd; game ends.</span></div>
-            </div>
-        </div>
-
-        </div>
+      </div>
     </div>
-    </div>
+  </div>
 
+  <!-- Settings Modal -->
+  <div id="settingsModal" class="modal">
+    <div class="modal-content">
+      <button class="close-btn" id="closeSettingsBtn">&times;</button>
+      <h2>⚙️ Game Settings</h2>
 
-    <!-- Settings Modal -->
-    <div id="settingsModal" class="modal">
-        <div class="modal-content">
-            <button class="close-btn" id="closeSettingsBtn">&times;</button>
-            <h2>⚙️ Game Settings</h2>
-            <div style="display: flex; flex-direction: column; gap: 20px;">
-                <label>
-                    <select id="playerCount">
-                    <option value="4">4 Players</option>
-                    <option value="3">3 Players</option>
-                    <option value="2">2 Players</option>
-                    </select>
-                </label>
-
-                <label>
-                    <input type="checkbox" id="soundToggle" checked> Sound Effects
-                </label>
-                <label>
-                    <input type="checkbox" id="animationToggle" checked> Animations
-                </label>
-                <label>
-                    <input type="range" id="pieceSize" min="80" max="120" value="100"> Piece Size
-                </label>
-                <label>
-                    <select id="themeSelect">
-                        <option value="dark">Dark Theme</option>
-                        <option value="neon">Neon Theme</option>
-                        <option value="classic">Classic Wood</option>
-                    </select>
-                </label>
-                <button class="header-btn" style="width: 100%; margin-top: 10px;" onclick="resetGame()">🔄 New Game</button>
-            </div>
+      <div class="settings-grid">
+        <div class="field">
+          <label>Player Count
+            <select id="playerCount">
+              <option value="4">4 Players</option>
+              <option value="3">3 Players</option>
+              <option value="2">2 Players</option>
+            </select>
+          </label>
+          <div class="hint">Inactive colors are hidden and skipped automatically.</div>
         </div>
+
+        <div class="field">
+          <label>Theme
+            <select id="themeSelect">
+              <option value="dark">Dark Theme</option>
+              <option value="neon">Neon Theme</option>
+              <option value="classic">Classic Wood</option>
+            </select>
+          </label>
+          <div class="hint">Theme is applied using CSS variables.</div>
+        </div>
+
+        <div class="field">
+          <label>Piece Size
+            <input type="range" id="pieceSize" min="80" max="120" value="100"/>
+          </label>
+          <div class="hint">Scales pieces in base and on board.</div>
+        </div>
+
+        <div class="field">
+          <label style="flex-direction:row;align-items:center;justify-content:space-between;">
+            <span>Sound Effects</span>
+            <input type="checkbox" id="soundToggle" checked/>
+          </label>
+          <label style="flex-direction:row;align-items:center;justify-content:space-between;margin-top:10px;">
+            <span>Animations</span>
+            <input type="checkbox" id="animationToggle" checked/>
+          </label>
+          <div class="hint">Sound is stubbed. Animations can be disabled.</div>
+        </div>
+      </div>
+
+      <div class="actions" style="margin-top:14px;">
+        <button class="btn primary" onclick="resetGame(true)">🔄 New Game</button>
+        <button class="btn" onclick="closeSettings()">Close</button>
+      </div>
     </div>
+  </div>
 
-    <script>
+  <div class="toasts" id="toasts"></div>
 
-        const BOARD_PATH = [
-        1,2,3,4,5,6,7,8,9,10,11,12,
-        13,14,15,16,17,18,19,20,21,22,23,24
-        ];
+  <script>
+    // ===== Constants =====
+    const SAFE_ZONES = [1,5,9,13,18,24,20,22];
+    const ENTRY_POINTS = { red:1, blue:5, yellow:9, green:13 };
+    const INNER_SQUARES = [17,18,19,21,22,23];
+    const ALL_COLORS = ["red","blue","yellow","green"];
+    const PHASE = { ROLL:"ROLL", MOVE:"MOVE" };
 
-        const SAFE_ZONES = [1,5,9,13,18,24,20,22];
+    // ===== State =====
+    let players = [...ALL_COLORS];
+    let currentPlayerIndex = 0;
 
-        const ENTRY_POINTS = {
-            red:1,
-            blue:5,
-            yellow:9,
-            green:13
+    let winsCount = {};
+    let placedPlayers = [];
+    let gameOver = false;
+
+    let soundEnabled = true;
+    let animationsEnabled = true;
+
+    let illegalCounter = {};
+    let eliminationCount = {};
+
+    // Turn state
+    let phase = PHASE.ROLL;
+
+    let rollsLeft = 1;          // reroll only on: 8 OR capture OR reach 25
+    let turnRolls = [];          // [{value, used:false, meta:{sticks:[0/1], rawValue}}]
+
+    // selections
+    let selectedRollIndex = null;
+    let split8Mode = false;      // only for roll 8; uses 4 then 4
+    let selectedPieceId = null;
+
+    // split flow
+    let pendingSecondFour = false;
+    let pendingRollIndex = null;
+
+    // pieces
+    let pieces = {};
+    let pieceIdCounter = 0;
+
+    // ===== UI helpers =====
+    function toast(type, title, msg){
+      const box = document.getElementById("toasts");
+      const t = document.createElement("div");
+      t.className = "toast " + (type || "");
+      t.innerHTML = `<div class="t-title">${title}</div><div class="t-msg">${msg}</div>`;
+      box.appendChild(t);
+      setTimeout(()=>{ t.style.opacity="0"; t.style.transform="translateY(8px)"; }, 2100);
+      setTimeout(()=>{ t.remove(); }, 2500);
+    }
+
+    function getCurrentPlayer(){ return players[currentPlayerIndex]; }
+
+    function rotatePosition(player,pos){
+      const entry = ENTRY_POINTS[player];
+      return ((entry - 1 + pos - 1) % 24) + 1;
+    }
+
+    function canEnterInner(player){ return (eliminationCount[player] || 0) >= 1; }
+    function isSafe(square){ return SAFE_ZONES.includes(square); }
+
+    function applyTheme(theme){ document.body.dataset.theme = theme; }
+    function applyPieceSize(percent){ document.documentElement.style.setProperty("--pieceScale", (percent/100).toString()); }
+    function applyAnimations(enabled){ animationsEnabled = enabled; document.body.classList.toggle("no-anim", !enabled); }
+    function applySound(enabled){ soundEnabled = enabled; }
+
+    function totalScore(){ return turnRolls.reduce((s,r)=>s + (r.value || 0), 0); }
+    function remainingUnusedRolls(){ return turnRolls.filter(r=>!r.used).length; }
+
+    function updateHUD(){
+      const p = getCurrentPlayer();
+      const dot = document.getElementById("playerDot");
+      dot.className = "dot " + p;
+
+      document.getElementById("hudPlayer").textContent = "Current: " + p.toUpperCase();
+      document.getElementById("hudPhase").textContent = "PHASE: " + phase;
+      document.getElementById("hudRollsLeft").textContent = "ROLLS LEFT: " + rollsLeft;
+
+      document.getElementById("hudTotal").textContent = totalScore();
+      document.getElementById("hudIllegal").textContent = illegalCounter[p] || 0;
+      document.getElementById("hudKills").textContent = eliminationCount[p] || 0;
+      document.getElementById("hudPlaced").textContent = placedPlayers.length;
+
+      document.getElementById("selRoll").textContent =
+        (selectedRollIndex === null) ? "None" :
+        (turnRolls[selectedRollIndex] ? (turnRolls[selectedRollIndex].value + (turnRolls[selectedRollIndex].used ? " (used)" : "")) : "None");
+
+      document.getElementById("selPiece").textContent = selectedPieceId ? selectedPieceId : "None";
+      document.getElementById("splitMode").textContent = split8Mode ? "On (8 → 4+4)" : "Off";
+
+      const rollBtn = document.getElementById("rollBtn");
+      const toMoveBtn = document.getElementById("toMoveBtn");
+      const endTurnBtn = document.getElementById("endTurnBtn");
+      const applyMoveBtn = document.getElementById("applyMoveBtn");
+      const toggleSplitBtn = document.getElementById("toggleSplitBtn");
+
+      rollBtn.disabled = (phase !== PHASE.ROLL) || gameOver || (rollsLeft <= 0) || (totalScore() >= 32);
+      toMoveBtn.disabled = (phase !== PHASE.ROLL) || gameOver || (turnRolls.length === 0); // must roll at least once
+      endTurnBtn.disabled = gameOver;
+
+      applyMoveBtn.disabled = (phase !== PHASE.MOVE) || gameOver;
+      toggleSplitBtn.disabled = (phase !== PHASE.MOVE) || gameOver ||
+        selectedRollIndex === null || !turnRolls[selectedRollIndex] ||
+        turnRolls[selectedRollIndex].used || turnRolls[selectedRollIndex].value !== 8;
+
+      // chips
+      const strip = document.getElementById("rollStrip");
+      strip.innerHTML = "";
+      turnRolls.forEach((r,idx)=>{
+        const chip = document.createElement("div");
+        chip.className = "chip" + (r.value===8 ? " eight":"") + (r.used ? " used":"") + (selectedRollIndex===idx ? " selected":"");
+        chip.textContent = r.value;
+        chip.onclick = ()=>{
+          if(phase !== PHASE.MOVE) return;
+          selectedRollIndex = idx;
+          split8Mode = false;
+          renderPieces();
+          updateHUD();
         };
+        strip.appendChild(chip);
+      });
 
-        let players = ["red","blue","yellow","green"];
-        let currentPlayerIndex = 0;
-        let winsCount = {};
-        let placedPlayers = [];
-        let gameOver = false;
-        let soundEnabled = true;
-        let animationsEnabled = true;
-        let illegalCounter = {};
-        let eliminationCount = {};
+      const hint = document.getElementById("hintText");
+      if(phase === PHASE.ROLL){
+        hint.textContent = "Roll using sticks. Reroll only on 8/capture/25. Then go to Move Phase.";
+      }else{
+        hint.textContent = pendingSecondFour
+          ? "Split pending: select piece for second 4 and Apply."
+          : "Use all roll-chunks. If leftover chunks have no legal move, turn ends automatically.";
+      }
+    }
 
-        players.forEach(p=>{
-            illegalCounter[p]=0;
-            eliminationCount[p]=0;
-        });
-        players.forEach(p => winsCount[p] = 0);
+    // ===== 5-stick roll =====
+    function rollSticks(){
+      const sticks = [];
+      let sum = 0;
+      for(let i=0;i<5;i++){
+        const bit = Math.random() < 0.5 ? 0 : 1;
+        sticks.push(bit);
+        sum += bit;
+      }
+      const value = (sum === 0 || sum === 5) ? 8 : sum;
+      return { sticks, sum, value };
+    }
 
-        let pieces = {};
-        let pieceIdCounter = 0;
+    function showSticks(sticksArr){
+      const row = document.getElementById("sticksRow");
+      row.innerHTML = "";
+      sticksArr.forEach(b=>{
+        const s = document.createElement("div");
+        s.className = "stick" + (b===1 ? " on":"");
+        const sp = document.createElement("span");
+        sp.textContent = b;
+        s.appendChild(sp);
+        row.appendChild(s);
+      });
+    }
 
-        document.querySelectorAll(".piece").forEach(p=>{
-            const id = "P"+(++pieceIdCounter);
-            p.dataset.id = id;
-            pieces[id]={
-                id:id,
-                player:p.dataset.player,
-                type:p.dataset.type,
-                position:0, // 0 = base
-                eliminated:false,
-                firstExit:true
-            };
-        });
-        function openRules(){
-            document.getElementById("rulesModal").style.display = "flex";
-        }
+    function teenTigadaCheck(){
+      const seq = turnRolls.map(r=>r.value);
+      for(let i=0;i<=seq.length-4;i++){
+        if(seq[i]===8 && seq[i+1]===8 && seq[i+2]===8 && seq[i+3]===3) return true;
+      }
+      return false;
+    }
 
-        function closeRules(){
-            document.getElementById("rulesModal").style.display = "none";
-        }
+    // ===== Pieces / Board =====
+    function initPiecesFromDOM(){
+      pieces = {};
+      pieceIdCounter = 0;
+      document.querySelectorAll(".base .piece").forEach(p=>{
+        const id = "P" + (++pieceIdCounter);
+        p.dataset.id = id;
+        pieces[id] = {
+          id,
+          player: p.dataset.player,
+          type: p.dataset.type,
+          position: 0,
+          firstExit: true
+        };
+      });
+    }
 
-        function openSettings(){
-            document.getElementById("settingsModal").style.display = "flex";
-        }
+    function renderBasesVisibility(){
+      document.querySelectorAll(".base").forEach(b=>{
+        const color = b.dataset.base;
+        b.style.display = players.includes(color) ? "flex" : "none";
+      });
+    }
 
-        function closeSettings(){
-            document.getElementById("settingsModal").style.display = "none";
-        }
+    function clearBoardPieces(){
+      document.querySelectorAll(".cell").forEach(cell=>{
+        if(cell.classList.contains("base")) return;
+        cell.querySelectorAll(".piece").forEach(el=>el.remove());
+      });
+    }
 
-        function getCurrentPlayer(){
-            return players[currentPlayerIndex];
-        }
+    function isPieceActive(piece){ return players.includes(piece.player); }
 
-        function rotatePosition(player,pos){
-            const entry = ENTRY_POINTS[player];
-            return ((entry -1 + pos -1) % 24) +1;
-        }
+    function renderPieces(){
+      // base pieces click
+      document.querySelectorAll(".base .piece").forEach(el=>{
+        const id = el.dataset.id;
+        const pc = pieces[id];
+        if(!pc) return;
 
-        function canEnterInner(player){
-            return eliminationCount[player] >=1;
-        }
+        el.classList.toggle("current-turn", pc.player === getCurrentPlayer());
+        el.classList.toggle("selected", selectedPieceId === id);
 
-        function isSafe(square){
-            return SAFE_ZONES.includes(square);
-        }
+        el.onclick = ()=>{
+          if(gameOver) return;
+          if(pc.player !== getCurrentPlayer()) return;
+          if(phase !== PHASE.MOVE) return;
+          selectedPieceId = id;
+          updateHUD();
+          renderPieces();
+        };
+      });
 
-        function applyTheme(theme){
-            document.body.dataset.theme = theme;
-        }
+      // dataset squares
+      document.querySelectorAll(".cell").forEach(cell=>{
+        const m = cell.className.match(/\bcell(\d+)\b/);
+        if(m) cell.dataset.square = m[1];
+      });
 
-        function applyPieceSize(percent){
-            // percent is 80..120 from slider
-            document.documentElement.style.setProperty("--pieceScale", (percent/100).toString());
-        }
+      clearBoardPieces();
 
-        function applyAnimations(enabled){
-            animationsEnabled = enabled;
-            document.body.classList.toggle("no-anim", !enabled);
-        }
+      for(const id in pieces){
+        const pc = pieces[id];
+        if(!isPieceActive(pc)) continue;
+        if(pc.position > 0 && pc.position < 25){
+          const square = rotatePosition(pc.player, pc.position);
+          const cell = document.querySelector(`.cell[data-square="${square}"]`);
+          if(!cell) continue;
 
-        function applySound(enabled){
-            soundEnabled = enabled;
-            // You can gate any future sounds with: if(!soundEnabled) return;
-        }
+          const div = document.createElement("div");
+          div.className = `piece ${pc.type} p-${pc.player}`;
+          if(pc.player === getCurrentPlayer()) div.classList.add("current-turn");
+          if(selectedPieceId === id) div.classList.add("selected");
+          div.textContent = (pc.type === "king") ? "👑" : "♞";
 
-        document.getElementById("playerCount").addEventListener("change",function(){
-            const count = parseInt(this.value);
-            players = ["red","blue","yellow","green"].slice(0,count);
-            currentPlayerIndex=0;
-            winsCount = {};
-            placedPlayers = [];
-            gameOver = false;
-            players.forEach(p => winsCount[p] = 0);
-
-        });
-
-        function attemptMove(pieceId,chunk){
-            if (gameOver) return;
-            const piece = pieces[pieceId];
-            const player = piece.player;
-
-            if(player!==getCurrentPlayer()) return;
-
-            // King even rule
-            if(piece.type==="king"){
-                if(chunk%2!==0){
-                    illegalMove(player,"King moves only on even numbers.");
-                    return;
-                }
-                chunk = chunk/2;
-            }
-
-            if(piece.position===0){
-                if(chunk!==4 && chunk!==8){
-                    illegalMove(player,"Exit only on 4 or 8.");
-                    return;
-                }
-                piece.position = 1;
-                piece.firstExit=false;
-                renderPieces();
-                nextTurn();
-                return;
-            }
-
-            let newPos = piece.position + chunk;
-
-            if(newPos>25){
-                illegalMove(player,"Overshoot Core.");
-                return;
-            }
-
-            if (newPos === 25) {
-                // Remove piece from board
-                piece.position = 25;
-
-                // Count this as a finished piece for the player
-                winsCount[player] = (winsCount[player] || 0) + 1;
-
-                renderPieces();
-
-                // If player finished all 4 pieces, place them (1st/2nd/3rd)
-                if (winsCount[player] === 4 && !placedPlayers.includes(player)) {
-                    placedPlayers.push(player);
-                    alert(player.toUpperCase() + " finished all 4 pieces! Place: " + placedPlayers.length);
-
-                    // End game when 3 players are placed
-                    if (placedPlayers.length === 3) {
-                    gameOver = true;
-                    alert("Game Over! Placed players: " + placedPlayers.map(p => p.toUpperCase()).join(", "));
-                    return;
-                    }
-                } else {
-                    alert(player.toUpperCase() + " piece reached Core! (" + winsCount[player] + "/4)");
-                }
-
-                nextTurn();
-                return;
-            }
-
-            
-            const landingSquare = rotatePosition(player,newPos);
-
-            if(!canEnterInner(player)){
-                if([17,18,19,21,22,23].includes(landingSquare)){
-                    illegalMove(player,"Inner locked. Eliminate first.");
-                    return;
-                }
-            }
-            const occupants = findPiecesOnSquare(landingSquare);
-
-            // Safe zone: stacking allowed, no elimination
-            if (isSafe(landingSquare)) {
-            // landing allowed, do nothing
-            } else {
-            // Non-safe: no stacking; landing on own piece is illegal
-            if (occupants.some(o => o.player === player)) {
-                illegalMove(player, "Own piece blocking.");
-                return;
-            }
-
-            // If an enemy is present, capture only if type matches
-            const enemy = occupants.find(o => o.player !== player);
-            if (enemy) {
-                if (piece.type === "knight" && enemy.type === "knight") {
-                eliminate(enemy);
-                } else if (piece.type === "king" && enemy.type === "king") {
-                eliminate(enemy);
-                } else {
-                illegalMove(player, "Wrong type combat.");
-                return;
-                }
-            }
-            }
-
-
-            piece.position = newPos;
-            illegalCounter[player] = 0;
+          div.onclick = ()=>{
+            if(gameOver) return;
+            if(pc.player !== getCurrentPlayer()) return;
+            if(phase !== PHASE.MOVE) return;
+            selectedPieceId = id;
+            updateHUD();
             renderPieces();
-            nextTurn();
+          };
 
+          cell.appendChild(div);
         }
+      }
+    }
 
-        function findPiecesOnSquare(square) {
-            const out = [];
-            for (let id in pieces) {
-                const pc = pieces[id];
-                if (pc.position === 0) continue;          // base not on path
-                if (pc.position === 25) continue;         // core removed from board
-                const rotated = rotatePosition(pc.player, pc.position);
-                if (rotated === square) out.push(pc);
-            }
-            return out;
+    // ===== Occupancy / legality =====
+    function findPiecesOnSquare(square){
+      const out = [];
+      for(const id in pieces){
+        const pc = pieces[id];
+        if(!isPieceActive(pc)) continue;
+        if(pc.position === 0) continue;
+        if(pc.position === 25) continue;
+        const rotated = rotatePosition(pc.player, pc.position);
+        if(rotated === square) out.push(pc);
+      }
+      return out;
+    }
+
+    function illegalMove(player,msg){
+      illegalCounter[player] = (illegalCounter[player] || 0) + 1;
+
+      if(illegalCounter[player] === 1){
+        toast("bad","Illegal Move", msg);
+      }else if(illegalCounter[player] === 2){
+        toast("warn","Hint","Try a different piece or roll.");
+      }else{
+        toast("bad","Turn Skipped","3 consecutive illegal attempts.");
+        illegalCounter[player] = 0;
+        nextTurn();
+      }
+      updateHUD();
+    }
+
+    function simulateLegality(piece, chunk){
+      let steps = chunk;
+
+      if(piece.type === "king"){
+        if(chunk % 2 !== 0) return {ok:false};
+        steps = chunk / 2;
+      }
+
+      if(piece.position === 0){
+        if(chunk !== 4 && chunk !== 8) return {ok:false};
+        return {ok:true};
+      }
+
+      const newPos = piece.position + steps;
+      if(newPos > 25) return {ok:false};
+      if(newPos === 25) return {ok:true};
+
+      const landingSquare = rotatePosition(piece.player, newPos);
+
+      if(!canEnterInner(piece.player) && INNER_SQUARES.includes(landingSquare)) return {ok:false};
+
+      const occupants = findPiecesOnSquare(landingSquare);
+
+      if(isSafe(landingSquare)) return {ok:true};
+
+      if(occupants.some(o => o.player === piece.player)) return {ok:false};
+
+      const enemy = occupants.find(o => o.player !== piece.player);
+      if(enemy){
+        if(piece.type === "knight" && enemy.type === "knight") return {ok:true};
+        if(piece.type === "king" && enemy.type === "king") return {ok:true};
+        return {ok:false};
+      }
+
+      return {ok:true};
+    }
+
+    function hasAnyLegalMoveForChunk(chunk){
+      const p = getCurrentPlayer();
+      for(const id in pieces){
+        const pc = pieces[id];
+        if(!isPieceActive(pc)) continue;
+        if(pc.player !== p) continue;
+        if(simulateLegality(pc, chunk).ok) return true;
+      }
+      return false;
+    }
+
+    // NEW: only skip if ALL UNUSED rolls are unusable
+    function allUnusedRollsUnusable(){
+      const unused = turnRolls.filter(r=>!r.used);
+      if(unused.length === 0) return false; // nothing to waste
+      for(const r of unused){
+        if(hasAnyLegalMoveForChunk(r.value)) return false;
+      }
+      return true;
+    }
+
+    // ===== Capture & bonuses =====
+    function eliminate(capturedPiece){
+      const capturer = getCurrentPlayer();
+      eliminationCount[capturer] = (eliminationCount[capturer] || 0) + 1;
+
+      capturedPiece.position = 0;
+      capturedPiece.firstExit = true;
+
+      // reroll ONLY on capture
+      rollsLeft += 1;
+      toast("good","Capture","Bonus reroll gained (+1).");
+    }
+
+    // ===== Movement application =====
+    function applySingleChunkMove(pieceId, chunk){
+      if(gameOver) return false;
+
+      const piece = pieces[pieceId];
+      const player = piece.player;
+
+      if(player !== getCurrentPlayer()) return false;
+
+      // King rule
+      let steps = chunk;
+      if(piece.type === "king"){
+        if(chunk % 2 !== 0){
+          illegalMove(player,"King moves only on even chunks.");
+          return false;
         }
+        steps = chunk / 2;
+      }
 
-        function eliminate(capturedPiece) {
-            const capturer = getCurrentPlayer();
-
-            // Increment capturer's elimination count (unlock inner track logic uses this)
-            eliminationCount[capturer] = (eliminationCount[capturer] || 0) + 1;
-
-            // Reset only the captured piece back to base
-            capturedPiece.position = 0;
-            capturedPiece.firstExit = true;
-
-            alert("Elimination! Bonus roll granted.");
+      // Base exit
+      if(piece.position === 0){
+        if(chunk !== 4 && chunk !== 8){
+          illegalMove(player,"Exit Base only on 4 or 8.");
+          return false;
         }
-
-
-        function illegalMove(player,msg){
-            illegalCounter[player]++;
-            if(illegalCounter[player]===1){
-                alert("Illegal Move: "+msg);
-            }
-            else if(illegalCounter[player]===2){
-                alert("Hint: Check other pieces.");
-            }
-            else{
-                alert("3 Illegal attempts. Turn skipped.");
-                illegalCounter[player]=0;
-                nextTurn();
-            }
-        }
-
-        function renderPieces(){
-            document.querySelectorAll(".cell").forEach(cell => {
-                const m = cell.className.match(/\bcell(\d+)\b/);
-                if (m) cell.dataset.square = m[1];
-            });
-
-
-            for(let id in pieces){
-                const piece = pieces[id];
-                if(piece.position>0 && piece.position<25){
-                    const square = rotatePosition(piece.player,piece.position);
-                    const cell = document.querySelector(`.cell[data-square="${square}"]`);
-                    if(cell){
-                        const div = document.createElement("div");
-                        div.className = "piece " + piece.type + " p-" + piece.player;
-                        if (piece.player === getCurrentPlayer()) div.classList.add("current-turn");
-                        div.innerText = piece.type==="king"?"👑":"♞";
-                        div.onclick=()=>attemptMove(id,4); // temp test move 4
-                        cell.appendChild(div);
-                    }
-                }
-            }
-        }
-
+        piece.position = 1;
+        piece.firstExit = false;
+        illegalCounter[player] = 0;
         renderPieces();
-        function nextTurn() {
-            if (gameOver) return;
-            currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+        updateHUD();
+        return true;
+      }
 
-            // Skip players who already placed (finished all 4)
-            let safety = 0;
-            while (placedPlayers.includes(getCurrentPlayer()) && safety < 10) {
-                currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
-                safety++;
-            }
+      const newPos = piece.position + steps;
 
-            renderPieces();
+      if(newPos > 25){
+        illegalMove(player,"Overshoot Core (25).");
+        return false;
+      }
+
+      if(newPos === 25){
+        piece.position = 25;
+        winsCount[player] = (winsCount[player] || 0) + 1;
+
+        // reroll ONLY on reaching 25
+        rollsLeft += 1;
+        toast("good","Reached Core","Piece finished. Bonus reroll gained (+1).");
+
+        if(winsCount[player] === 4 && !placedPlayers.includes(player)){
+          placedPlayers.push(player);
+          toast("good","Placement", `${player.toUpperCase()} finished all 4 pieces! Place: ${placedPlayers.length}`);
+          if(placedPlayers.length === 3){
+            gameOver = true;
+            toast("warn","Game Over","Top 3 placed. Game ended.");
+          }
         }
 
-        function openRules(){
-            document.getElementById("rulesModal").style.display = "flex";
+        illegalCounter[player] = 0;
+        renderPieces();
+        updateHUD();
+        return true;
+      }
+
+      // Inner lock
+      const landingSquare = rotatePosition(player, newPos);
+      if(!canEnterInner(player) && INNER_SQUARES.includes(landingSquare)){
+        illegalMove(player,"Inner track locked. Capture once to unlock.");
+        return false;
+      }
+
+      const occupants = findPiecesOnSquare(landingSquare);
+
+      if(isSafe(landingSquare)){
+        // safe: no capture
+      }else{
+        if(occupants.some(o=>o.player === player)){
+          illegalMove(player,"Own piece blocking (no stacking on normal squares).");
+          return false;
         }
-
-        function closeRules(){
-            document.getElementById("rulesModal").style.display = "none";
+        const enemy = occupants.find(o=>o.player !== player);
+        if(enemy){
+          if(piece.type === "knight" && enemy.type === "knight") eliminate(enemy);
+          else if(piece.type === "king" && enemy.type === "king") eliminate(enemy);
+          else{
+            illegalMove(player,"Wrong type combat (type-locked).");
+            return false;
+          }
         }
+      }
 
-        function openSettings(){
-            document.getElementById("settingsModal").style.display = "flex";
+      piece.position = newPos;
+      illegalCounter[player] = 0;
+      renderPieces();
+      updateHUD();
+      return true;
+    }
+
+    function maybeAutoEndForNoWaste(){
+      // Called after each move attempt in MOVE phase
+      if(phase !== PHASE.MOVE) return;
+      if(pendingSecondFour) return;
+
+      // If still has unused rolls but none are legally playable => auto end turn
+      if(allUnusedRollsUnusable()){
+        toast("bad","No Legal Moves","All remaining roll-chunks are unusable. Next player.");
+        nextTurn();
+      }
+    }
+
+    // ===== Rolling phase =====
+    function doRoll(){
+      if(phase !== PHASE.ROLL || gameOver) return;
+
+      if(rollsLeft <= 0){
+        toast("warn","No Rolls Left","Go to Move Phase or end turn.");
+        return;
+      }
+
+      if(totalScore() >= 32){
+        toast("warn","Cap Reached","Turn total already at 32.");
+        rollsLeft = 0;
+        updateHUD();
+        return;
+      }
+
+      const r = rollSticks();
+      showSticks(r.sticks);
+
+      let add = r.value;
+      if(totalScore() + add > 32){
+        add = 32 - totalScore(); // clamp to stop at 32
+      }
+      if(add <= 0){
+        toast("warn","Cap Reached","Turn total stops at 32.");
+        rollsLeft = 0;
+        updateHUD();
+        return;
+      }
+
+      // consume roll
+      rollsLeft -= 1;
+
+      turnRolls.push({ value:add, used:false, meta:{sticks:r.sticks, rawValue:r.value} });
+
+      // Teen Tigada cancels entire turn (and loses everything)
+      if(teenTigadaCheck()){
+        toast("bad","Teen Tigada","8,8,8,3 occurred. Turn cancelled. Next player.");
+        nextTurn();
+        return;
+      }
+
+      // Reroll only if roll is 8
+      if(add === 8) rollsLeft += 1;
+
+      updateHUD();
+    }
+
+    function toMovePhase(){
+      if(phase !== PHASE.ROLL || gameOver) return;
+      if(turnRolls.length === 0){
+        toast("warn","Roll First","You must roll at least once.");
+        return;
+      }
+      phase = PHASE.MOVE;
+      selectedRollIndex = null;
+      split8Mode = false;
+      selectedPieceId = null;
+      toast("good","Move Phase","Assign your roll-chunks to pieces.");
+      renderPieces();
+      updateHUD();
+
+      // immediate no-waste check
+      maybeAutoEndForNoWaste();
+    }
+
+    // ===== Move panel actions =====
+    function applyMove(){
+      if(phase !== PHASE.MOVE || gameOver) return;
+
+      if(selectedRollIndex === null || !turnRolls[selectedRollIndex]){
+        toast("warn","Select Roll","Click a roll chip first.");
+        return;
+      }
+      if(selectedPieceId === null){
+        toast("warn","Select Piece","Click a piece first.");
+        return;
+      }
+
+      // pending second 4 flow
+      if(pendingSecondFour && pendingRollIndex !== null){
+        const ok2 = applySingleChunkMove(selectedPieceId, 4);
+        if(!ok2) return;
+
+        turnRolls[pendingRollIndex].used = true;
+
+        pendingSecondFour = false;
+        pendingRollIndex = null;
+        selectedRollIndex = null;
+        split8Mode = false;
+
+        toast("good","8 Split Complete","Used 4 + 4.");
+        updateHUD();
+
+        // after completing split, check no-waste
+        if(remainingUnusedRolls() === 0){
+          toast("good","Turn Complete","All roll-chunks used. Next player.");
+          nextTurn();
+          return;
         }
+        maybeAutoEndForNoWaste();
+        return;
+      }
 
-        function closeSettings(){
-            document.getElementById("settingsModal").style.display = "none";
-        }
+      const rollObj = turnRolls[selectedRollIndex];
+      if(rollObj.used){
+        toast("warn","Already Used","That chunk is already used.");
+        return;
+      }
 
-        window.onclick = function(event){
-            const rules = document.getElementById("rulesModal");
-            const settings = document.getElementById("settingsModal");
+      const chunk = rollObj.value;
 
-            if(event.target === rules){
-                closeRules();
-            }
-            if(event.target === settings){
-                closeSettings();
-            }
-        }
-        document.addEventListener("DOMContentLoaded", function(){
+      if(chunk === 8 && split8Mode){
+        const ok = applySingleChunkMove(selectedPieceId, 4);
+        if(!ok) return;
 
-            const rulesModal = document.getElementById("rulesModal");
-            const settingsModal = document.getElementById("settingsModal");
+        pendingSecondFour = true;
+        pendingRollIndex = selectedRollIndex;
 
-            const rulesBtn = document.getElementById("rulesBtn");
-            const settingsBtn = document.getElementById("settingsBtn");
+        toast("warn","Split Pending","Select piece (same/different) for second 4, then Apply.");
+        updateHUD();
+        return;
+      }
 
-            const closeRulesBtn = document.getElementById("closeRulesBtn");
-            const closeSettingsBtn = document.getElementById("closeSettingsBtn");
+      const ok = applySingleChunkMove(selectedPieceId, chunk);
+      if(!ok) return;
 
-            // Open modals
-            rulesBtn.addEventListener("click", () => {
-                rulesModal.style.display = "flex";
-            });
+      rollObj.used = true;
+      selectedRollIndex = null;
+      split8Mode = false;
 
-            settingsBtn.addEventListener("click", () => {
-                settingsModal.style.display = "flex";
-            });
+      updateHUD();
 
-            // Close modals
-            closeRulesBtn.addEventListener("click", () => {
-                rulesModal.style.display = "none";
-            });
+      // if all used => next player
+      if(remainingUnusedRolls() === 0){
+        toast("good","Turn Complete","All roll-chunks used. Next player.");
+        nextTurn();
+        return;
+      }
 
-            closeSettingsBtn.addEventListener("click", () => {
-                settingsModal.style.display = "none";
-            });
+      // no-waste skip check (only if all remaining are unusable)
+      maybeAutoEndForNoWaste();
+    }
 
-            // Click outside to close
-            window.addEventListener("click", (event) => {
-                if(event.target === rulesModal){
-                    rulesModal.style.display = "none";
-                }
-                if(event.target === settingsModal){
-                    settingsModal.style.display = "none";
-                }
-            });
+    function toggleSplit(){
+      if(phase !== PHASE.MOVE) return;
+      if(selectedRollIndex === null || !turnRolls[selectedRollIndex]) return;
 
-        });
+      const r = turnRolls[selectedRollIndex];
+      if(r.used) return;
+      if(r.value !== 8){
+        toast("warn","Not 8","8 split mode works only for chunk 8.");
+        return;
+      }
+      split8Mode = !split8Mode;
+      updateHUD();
+    }
 
-    </script>
+    function clearSelection(){
+      selectedRollIndex = null;
+      selectedPieceId = null;
+      split8Mode = false;
+      pendingSecondFour = false;
+      pendingRollIndex = null;
+      renderPieces();
+      updateHUD();
+    }
 
+    // ===== Turn progression =====
+    function nextTurn(){
+      if(gameOver) return;
+
+      // reset turn
+      phase = PHASE.ROLL;
+      rollsLeft = 1;
+      turnRolls = [];
+
+      selectedRollIndex = null;
+      selectedPieceId = null;
+      split8Mode = false;
+      pendingSecondFour = false;
+      pendingRollIndex = null;
+
+      // advance player
+      currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+      let safety = 0;
+      while(placedPlayers.includes(getCurrentPlayer()) && safety < 10){
+        currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+        safety++;
+      }
+
+      // reset sticks display
+      document.getElementById("sticksRow").innerHTML = `
+        <div class="stick"><span>–</span></div><div class="stick"><span>–</span></div>
+        <div class="stick"><span>–</span></div><div class="stick"><span>–</span></div>
+        <div class="stick"><span>–</span></div>
+      `;
+
+      renderPieces();
+      updateHUD();
+    }
+
+    // ===== Settings =====
+    function openRules(){ document.getElementById("rulesModal").style.display = "flex"; }
+    function closeRules(){ document.getElementById("rulesModal").style.display = "none"; }
+    function openSettings(){ document.getElementById("settingsModal").style.display = "flex"; }
+    function closeSettings(){ document.getElementById("settingsModal").style.display = "none"; }
+
+    function applyPlayerCount(count){
+      players = ALL_COLORS.slice(0,count);
+      currentPlayerIndex = 0;
+      placedPlayers = [];
+      gameOver = false;
+
+      winsCount = {}; illegalCounter = {}; eliminationCount = {};
+      players.forEach(p=>{
+        winsCount[p]=0; illegalCounter[p]=0; eliminationCount[p]=0;
+      });
+
+      resetGame(true);
+    }
+
+    function resetGame(showToast){
+      placedPlayers = [];
+      gameOver = false;
+
+      players.forEach(p=>{
+        winsCount[p]=0; illegalCounter[p]=0; eliminationCount[p]=0;
+      });
+
+      for(const id in pieces){
+        pieces[id].position = 0;
+        pieces[id].firstExit = true;
+      }
+
+      phase = PHASE.ROLL;
+      rollsLeft = 1;
+      turnRolls = [];
+
+      selectedRollIndex = null;
+      selectedPieceId = null;
+      split8Mode = false;
+      pendingSecondFour = false;
+      pendingRollIndex = null;
+
+      currentPlayerIndex = 0;
+
+      renderBasesVisibility();
+      renderPieces();
+      updateHUD();
+
+      if(showToast) toast("good","New Game","Board and state reset.");
+    }
+
+    // ===== Wire UI =====
+    document.getElementById("rulesBtn").addEventListener("click", openRules);
+    document.getElementById("closeRulesBtn").addEventListener("click", closeRules);
+    document.getElementById("settingsBtn").addEventListener("click", openSettings);
+    document.getElementById("closeSettingsBtn").addEventListener("click", closeSettings);
+    document.getElementById("newGameBtn").addEventListener("click", ()=>resetGame(true));
+
+    window.addEventListener("click",(e)=>{
+      const rulesModal = document.getElementById("rulesModal");
+      const settingsModal = document.getElementById("settingsModal");
+      if(e.target === rulesModal) closeRules();
+      if(e.target === settingsModal) closeSettings();
+    });
+
+    document.getElementById("rollBtn").addEventListener("click", doRoll);
+    document.getElementById("toMoveBtn").addEventListener("click", toMovePhase);
+    document.getElementById("endTurnBtn").addEventListener("click", ()=>{ toast("warn","Turn Ended","Next player."); nextTurn(); });
+
+    document.getElementById("applyMoveBtn").addEventListener("click", applyMove);
+    document.getElementById("toggleSplitBtn").addEventListener("click", toggleSplit);
+    document.getElementById("clearSelectBtn").addEventListener("click", clearSelection);
+
+    document.getElementById("playerCount").addEventListener("change", function(){
+      applyPlayerCount(parseInt(this.value,10));
+    });
+    document.getElementById("themeSelect").addEventListener("change", function(){ applyTheme(this.value); });
+    document.getElementById("pieceSize").addEventListener("input", function(){ applyPieceSize(parseInt(this.value,10)); });
+    document.getElementById("soundToggle").addEventListener("change", function(){ applySound(this.checked); toast("warn","Sound", this.checked ? "Enabled." : "Disabled."); });
+    document.getElementById("animationToggle").addEventListener("change", function(){ applyAnimations(this.checked); toast("warn","Animations", this.checked ? "Enabled." : "Disabled."); });
+
+    // ===== Init =====
+    (function init(){
+      initPiecesFromDOM();
+
+      applyTheme(document.getElementById("themeSelect").value);
+      applyPieceSize(parseInt(document.getElementById("pieceSize").value,10));
+      applySound(document.getElementById("soundToggle").checked);
+      applyAnimations(document.getElementById("animationToggle").checked);
+
+      players.forEach(p=>{
+        winsCount[p]=0; illegalCounter[p]=0; eliminationCount[p]=0;
+      });
+
+      renderBasesVisibility();
+      renderPieces();
+      updateHUD();
+      toast("good","Ready","Roll with 5 sticks. Reroll only on 8/capture/25.");
+    })();
+  </script>
 </body>
 </html>
