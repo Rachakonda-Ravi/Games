@@ -1,2 +1,996 @@
-<!-- AstaChamma.html -->
-<!DOCTYPE html><html><body style="background:#000;color:#fff;padding:50px;font-family:sans-serif;text-align:center;"><h1>🏇 Asta-Chamma</h1><p>Coming soon! 🎯</p></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AstaChemma - Beautiful Board Game</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Poppins:wght@300;400;500;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0a0a; /* Static dark background */
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Poppins', sans-serif;
+            color: #ffffff;
+            overflow-x: auto;
+            position: relative;
+        }
+
+        /* Header with buttons */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 900px;
+            padding: 20px 30px;
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, rgba(10,10,10,0.9), rgba(20,20,46,0.9));
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+
+        .header-left {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        /* Button Styles - Matching Tambola+ design */
+        .header-btn {
+            background: linear-gradient(145deg, #1e1e2e, #2a2a3e);
+            color: #ffffff;
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            box-shadow: 
+                0 4px 15px rgba(0,0,0,0.3),
+                inset 0 1px 0 rgba(255,255,255,0.1);
+        }
+
+        .header-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .header-btn:hover::before {
+            left: 100%;
+        }
+
+        .header-btn:hover {
+            background: linear-gradient(145deg, #2a2a3e, #3a3a5e);
+            border-color: rgba(255,255,255,0.4);
+            transform: translateY(-2px);
+            box-shadow: 
+                0 8px 25px rgba(0,0,0,0.4),
+                inset 0 1px 0 rgba(255,255,255,0.2);
+        }
+
+        .header-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Title Styling */
+        .game-title {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(2rem, 4vw, 3rem);
+            background: linear-gradient(45deg, #ffd700, #ffed4e, #ff6b35);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-align: center;
+            letter-spacing: 1px;
+            flex: 1;
+            margin: 0 20px;
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            color: #b8b8b8;
+            text-align: center;
+            margin-top: 5px;
+            font-weight: 300;
+        }
+
+        .game-container {
+            background: rgba(15, 15, 25, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow: 
+                0 25px 50px rgba(0,0,0,0.7),
+                inset 0 1px 0 rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.08);
+            margin: 0 20px;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: linear-gradient(145deg, #1a1a2e, #16213e);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 90%;
+            max-height: 80%;
+            overflow-y: auto;
+            border: 1px solid rgba(255,255,255,0.15);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+            position: relative;
+        }
+
+        .modal h2 {
+            margin-bottom: 20px;
+            color: #ffd700;
+            font-family: 'Cinzel', serif;
+        }
+
+        .modal ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .modal li {
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            position: relative;
+            padding-left: 25px;
+        }
+
+        .modal li::before {
+            content: '✦';
+            position: absolute;
+            left: 0;
+            color: #4facfe;
+            font-weight: bold;
+        }
+
+        .rules-grid{
+            display:grid;
+            grid-template-columns: repeat(2, minmax(220px, 1fr));
+            gap:14px;
+            margin-top:18px;
+        }
+
+            .rule-card{
+            border: 1px solid rgba(255,255,255,0.14);
+            border-radius: 16px;
+            padding: 16px 16px 14px;
+            background: rgba(255,255,255,0.06);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.10);
+            min-height: 120px; /* makes them feel like “squares” */
+        }
+
+            .rule-card h3{
+            margin: 0 0 8px;
+            font-family: Cinzel, serif;
+            color: #ffd700;
+            font-size: 1.05rem;
+            letter-spacing: 0.3px;
+        }
+            .rule-card p{
+            margin:0;
+            opacity:0.92;
+            line-height:1.35;
+            font-size:0.95rem;
+        }
+
+            @media (max-width: 650px){
+            .rules-grid{ grid-template-columns: 1fr; }
+            .rule-card{ min-height: unset; }
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 25px;
+            background: none;
+            border: none;
+            font-size: 28px;
+            color: #aaa;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .close-btn:hover {
+            color: #fff;
+            background: rgba(255,255,255,0.1);
+            transform: rotate(90deg);
+        }
+
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(7, clamp(70px, 10vw, 90px));
+            grid-template-rows: repeat(7, clamp(70px, 10vw, 90px));
+            gap: 6px;
+            justify-content: center;
+        }
+
+        /* Rest of the cell and piece styles remain the same */
+        .cell {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 600;
+            font-size: clamp(1rem, 2vw, 1.4rem);
+            border-radius: 16px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow:
+                0 8px 25px rgba(0,0,0,0.4),
+                inset 0 1px 0 rgba(255,255,255,0.2);
+
+            /* ADD THESE (for multiple pieces in one cell) */
+            flex-wrap: wrap;
+            align-content: center;
+            gap: 4px;
+            padding: 6px;
+        }
+        /* Shrink pieces only when they are placed on numbered board cells */
+        .cell .piece {
+            width: clamp(22px, 3.2vw, 30px);
+            height: clamp(22px, 3.2vw, 30px);
+            font-size: clamp(12px, 2vw, 16px);
+        }
+        .piece.current-turn {
+            box-shadow:
+                0 0 0 3px rgba(255,255,255,0.70),
+                0 0 18px rgba(180,110,255,0.90),
+                0 10px 25px rgba(0,0,0,0.45) !important;
+            transform: scale(1.05);
+        }
+
+
+        .empty { 
+            background: rgba(30,30,40,0.5);
+            cursor: default;
+        }
+
+        .outer { 
+            background: linear-gradient(135deg, #8e0000, #b71c1c);
+            border: 2px solid rgba(255,100,100,0.5);
+            box-shadow: 0 0 20px rgba(183,28,28,0.6);
+        }
+
+        .inner { 
+            background: linear-gradient(135deg, #002f6c, #0d47a1);
+            border: 2px solid rgba(100,150,255,0.6);
+            box-shadow: 0 0 25px rgba(13,71,161,0.7);
+        }
+
+        .safe { 
+            background: linear-gradient(135deg, #0b6623, #2e7d32);
+            border: 2px solid rgba(76,175,80,0.8);
+            box-shadow: 
+                0 0 25px rgba(46,125,50,0.9),
+                inset 0 0 15px rgba(0,255,0,0.3);
+            animation: safePulse 3s ease-in-out infinite;
+        }
+
+        @keyframes safePulse {
+            0%, 100% { box-shadow: 0 0 25px rgba(46,125,50,0.9), inset 0 0 15px rgba(0,255,0,0.3); }
+            50% { box-shadow: 0 0 35px rgba(46,125,50,1), inset 0 0 25px rgba(0,255,0,0.5); }
+        }
+
+        .core { 
+            background: linear-gradient(45deg, #ffd700, #ffed4e, #ff6b35);
+            color: #1a1a1a;
+            font-weight: 800;
+            border: 3px solid rgba(255,215,0,1);
+            box-shadow: 
+                0 0 40px rgba(255,215,0,1),
+                inset 0 0 20px rgba(255,255,255,0.8);
+            animation: coreRotate 4s linear infinite;
+        }
+
+        @keyframes coreRotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .base {
+            border-radius: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            align-items: center;
+            padding: 12px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+
+        .base.red { background: linear-gradient(135deg, #b71c1c, #d32f2f); }
+        .base.blue { background: linear-gradient(135deg, #0d47a1, #1976d2); }
+        .base.green { background: linear-gradient(135deg, #1b5e20, #388e3c); }
+        .base.yellow { background: linear-gradient(135deg, #f9a825, #fbc02d); }
+
+        .piece {
+            width: clamp(28px, 4vw, 36px);
+            height: clamp(28px, 4vw, 36px);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: clamp(14px, 2.5vw, 18px);
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 3px solid rgba(255,255,255,0.9);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+        }
+
+        .piece:hover {
+            transform: scale(1.15) rotate(10deg);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+        }
+
+        /* Player identity on pieces */
+        .piece.p-red    { border-color: rgba(255,80,80,0.95); box-shadow: 0 0 18px rgba(255,60,60,0.55), 0 6px 20px rgba(0,0,0,0.4); }
+        .piece.p-blue   { border-color: rgba(80,160,255,0.95); box-shadow: 0 0 18px rgba(60,140,255,0.55), 0 6px 20px rgba(0,0,0,0.4); }
+        .piece.p-green  { border-color: rgba(90,220,120,0.95); box-shadow: 0 0 18px rgba(60,200,110,0.55), 0 6px 20px rgba(0,0,0,0.4); }
+        .piece.p-yellow { border-color: rgba(255,215,80,0.98); box-shadow: 0 0 18px rgba(255,205,60,0.55), 0 6px 20px rgba(0,0,0,0.4); }
+
+        /* Small badge so color is obvious even for white knights */
+        .piece::after {
+            content: "";
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.85);
+            background: rgba(255,255,255,0.25);
+        }
+
+        .piece.p-red::after    { background: #ff3b3b; }
+        .piece.p-blue::after   { background: #2f7bff; }
+        .piece.p-green::after  { background: #35c46a; }
+        .piece.p-yellow::after { background: #ffd33d; }
+
+
+        .knight {
+            background: linear-gradient(135deg, #ffffff, #f0f0f0);
+            color: #333;
+        }
+
+        .king {
+            background: linear-gradient(135deg, #1a1a1a, #333);
+            color: #ffd700;
+            box-shadow: 0 0 20px rgba(255,215,0,0.8);
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                padding: 15px 20px;
+            }
+            
+            .header-left, .header-right {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .game-title {
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header with Settings (left) and Rules (right) buttons -->
+    <div class="header">
+        <div class="header-left">
+            <button class="header-btn" id="settingsBtn">⚙️ Settings</button>
+        </div>
+        
+        <div class="game-title">
+            AstaChemma
+            <div class="subtitle">Traditional Strategy Masterpiece</div>
+        </div>
+        
+        <div class="header-right">
+            <button class="header-btn" id="rulesBtn">📜 Rules</button>
+        </div>
+    </div>
+
+    <div class="game-container">
+        <div class="game-grid">
+            <!-- Row 1 -->
+            <div class="empty cell"></div>
+            <div class="empty cell"></div>
+            <div class="empty cell"></div>
+            <div class="base red">
+                <div class="piece knight" data-type="knight" data-player="red">♞</div>
+                <div class="piece knight" data-type="knight" data-player="red">♞</div>
+                <div class="piece knight" data-type="knight" data-player="red">♞</div>
+                <div class="piece king" data-type="king" data-player="red">👑</div>
+            </div>
+            <div class="empty cell"></div>
+            <div class="empty cell"></div>
+            <div class="empty cell"></div>
+
+            <!-- Row 2 -->
+            <div class="empty cell"></div>
+            <div class="outer cell">15</div>
+            <div class="outer cell">16</div>
+            <div class="safe cell">1</div>
+            <div class="outer cell">2</div>
+            <div class="outer cell">3</div>
+            <div class="empty cell"></div>
+
+            <!-- Row 3 -->
+            <div class="empty cell"></div>
+            <div class="outer cell">14</div>
+            <div class="inner cell">17</div>
+            <div class="safe cell">18</div>
+            <div class="inner cell">19</div>
+            <div class="outer cell">4</div>
+            <div class="empty cell"></div>
+
+            <!-- Row 4 -->
+            <div class="base green">
+                <div class="piece knight" data-type="knight" data-player="green">♞</div>
+                <div class="piece knight" data-type="knight" data-player="green">♞</div>
+                <div class="piece knight" data-type="knight" data-player="green">♞</div>
+                <div class="piece king" data-type="king" data-player="green">👑</div>
+            </div>
+            <div class="safe cell">13</div>
+            <div class="safe cell">24</div>
+            <div class="core cell">25</div>
+            <div class="safe cell">20</div>
+            <div class="safe cell">5</div>
+            <div class="base blue">
+                <div class="piece knight" data-type="knight" data-player="blue">♞</div>
+                <div class="piece knight" data-type="knight" data-player="blue">♞</div>
+                <div class="piece knight" data-type="knight" data-player="blue">♞</div>
+                <div class="piece king" data-type="king" data-player="blue">👑</div>
+            </div>
+
+            <!-- Row 5 -->
+            <div class="empty cell"></div>
+            <div class="outer cell">12</div>
+            <div class="inner cell">23</div>
+            <div class="safe cell">22</div>
+            <div class="inner cell">21</div>
+            <div class="outer cell">6</div>
+            <div class="empty cell"></div>
+
+            <!-- Row 6 -->
+            <div class="empty cell"></div>
+            <div class="outer cell">11</div>
+            <div class="outer cell">10</div>
+            <div class="safe cell">9</div>
+            <div class="outer cell">8</div>
+            <div class="outer cell">7</div>
+            <div class="empty cell"></div>
+
+            <!-- Row 7 -->
+            <div class="empty cell"></div>
+            <div class="empty cell"></div>
+            <div class="empty cell"></div>
+            <div class="base yellow">
+                <div class="piece knight" data-type="knight" data-player="yellow">♞</div>
+                <div class="piece knight" data-type="knight" data-player="yellow">♞</div>
+                <div class="piece knight" data-type="knight" data-player="yellow">♞</div>
+                <div class="piece king" data-type="king" data-player="yellow">👑</div>
+            </div>
+            <div class="empty cell"></div>
+            <div class="empty cell"></div>
+            <div class="empty cell"></div>
+        </div>
+    </div>
+
+    <!-- Rules Modal -->
+    <div id="rulesModal" class="modal">
+    <div class="modal-content">
+        <button class="close-btn" id="closeRulesBtn">&times;</button>
+        <h2>AstaChemma Rules</h2>
+
+        <div class="rules-grid">
+        <div class="rule-card">
+            <h3>Pieces</h3>
+            <p>Each player has 3 Knights and 1 King.</p>
+        </div>
+
+        <div class="rule-card">
+            <h3>Type-locked Combat</h3>
+            <p>Knights eliminate Knights only; Kings eliminate Kings only. Wrong match = illegal move.</p>
+        </div>
+
+        <div class="rule-card">
+            <h3>Safe Zones</h3>
+            <p>No elimination in Safe Zones. Stacking is allowed only in Base and Safe Zones.</p>
+        </div>
+
+        <div class="rule-card">
+            <h3>King Move Rule</h3>
+            <p>King moves only on even dice totals; odd totals become illegal for the King.</p>
+        </div>
+
+        <div class="rule-card">
+            <h3>Inner Zone Lock</h3>
+            <p>Inner zone opens only after you make 1 elimination (with any piece).</p>
+        </div>
+
+        <div class="rule-card">
+            <h3>Core Entry (25)</h3>
+            <p>Exact entry required. Overshoot = illegal move.</p>
+        </div>
+
+        <div class="rule-card">
+            <h3>Illegal Move Penalty</h3>
+            <p>3 illegal attempts → turn skipped (counter resets after the skip).</p>
+        </div>
+
+        <div class="rule-card">
+            <h3>Bonus Roll</h3>
+            <p>Capture or reaching the Core grants a bonus roll (if you implement dice later).</p>
+        </div>
+        </div>
+    </div>
+    </div>
+
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <button class="close-btn" id="closeSettingsBtn">&times;</button>
+            <h2>⚙️ Game Settings</h2>
+            <div style="display: flex; flex-direction: column; gap: 20px;">
+                <label>
+                    <select id="playerCount">
+                    <option value="4">4 Players</option>
+                    <option value="3">3 Players</option>
+                    <option value="2">2 Players</option>
+                    </select>
+                </label>
+
+                <label>
+                    <input type="checkbox" id="soundToggle" checked> Sound Effects
+                </label>
+                <label>
+                    <input type="checkbox" id="animationToggle" checked> Animations
+                </label>
+                <label>
+                    <input type="range" id="pieceSize" min="80" max="120" value="100"> Piece Size
+                </label>
+                <label>
+                    <select id="themeSelect">
+                        <option value="dark">Dark Theme</option>
+                        <option value="neon">Neon Theme</option>
+                        <option value="classic">Classic Wood</option>
+                    </select>
+                </label>
+                <button class="header-btn" style="width: 100%; margin-top: 10px;" onclick="resetGame()">🔄 New Game</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+        const BOARD_PATH = [
+        1,2,3,4,5,6,7,8,9,10,11,12,
+        13,14,15,16,17,18,19,20,21,22,23,24
+        ];
+
+        const SAFE_ZONES = [1,5,9,13,18,24,20,22];
+
+        const ENTRY_POINTS = {
+            red:1,
+            blue:5,
+            yellow:9,
+            green:13
+        };
+
+        let players = ["red","blue","yellow","green"];
+        let currentPlayerIndex = 0;
+        let winsCount = {};
+        let placedPlayers = [];
+        let gameOver = false;
+        let soundEnabled = true;
+        let animationsEnabled = true;
+        let illegalCounter = {};
+        let eliminationCount = {};
+
+        players.forEach(p=>{
+            illegalCounter[p]=0;
+            eliminationCount[p]=0;
+        });
+        players.forEach(p => winsCount[p] = 0);
+
+        let pieces = {};
+        let pieceIdCounter = 0;
+
+        document.querySelectorAll(".piece").forEach(p=>{
+            const id = "P"+(++pieceIdCounter);
+            p.dataset.id = id;
+            pieces[id]={
+                id:id,
+                player:p.dataset.player,
+                type:p.dataset.type,
+                position:0, // 0 = base
+                eliminated:false,
+                firstExit:true
+            };
+        });
+        function openRules(){
+            document.getElementById("rulesModal").style.display = "flex";
+        }
+
+        function closeRules(){
+            document.getElementById("rulesModal").style.display = "none";
+        }
+
+        function openSettings(){
+            document.getElementById("settingsModal").style.display = "flex";
+        }
+
+        function closeSettings(){
+            document.getElementById("settingsModal").style.display = "none";
+        }
+
+        function getCurrentPlayer(){
+            return players[currentPlayerIndex];
+        }
+
+        function rotatePosition(player,pos){
+            const entry = ENTRY_POINTS[player];
+            return ((entry -1 + pos -1) % 24) +1;
+        }
+
+        function canEnterInner(player){
+            return eliminationCount[player] >=1;
+        }
+
+        function isSafe(square){
+            return SAFE_ZONES.includes(square);
+        }
+
+        function applyTheme(theme){
+            document.body.dataset.theme = theme;
+        }
+
+        function applyPieceSize(percent){
+            // percent is 80..120 from slider
+            document.documentElement.style.setProperty("--pieceScale", (percent/100).toString());
+        }
+
+        function applyAnimations(enabled){
+            animationsEnabled = enabled;
+            document.body.classList.toggle("no-anim", !enabled);
+        }
+
+        function applySound(enabled){
+            soundEnabled = enabled;
+            // You can gate any future sounds with: if(!soundEnabled) return;
+        }
+
+        document.getElementById("playerCount").addEventListener("change",function(){
+            const count = parseInt(this.value);
+            players = ["red","blue","yellow","green"].slice(0,count);
+            currentPlayerIndex=0;
+            winsCount = {};
+            placedPlayers = [];
+            gameOver = false;
+            players.forEach(p => winsCount[p] = 0);
+
+        });
+
+        function attemptMove(pieceId,chunk){
+            if (gameOver) return;
+            const piece = pieces[pieceId];
+            const player = piece.player;
+
+            if(player!==getCurrentPlayer()) return;
+
+            // King even rule
+            if(piece.type==="king"){
+                if(chunk%2!==0){
+                    illegalMove(player,"King moves only on even numbers.");
+                    return;
+                }
+                chunk = chunk/2;
+            }
+
+            if(piece.position===0){
+                if(chunk!==4 && chunk!==8){
+                    illegalMove(player,"Exit only on 4 or 8.");
+                    return;
+                }
+                piece.position = 1;
+                piece.firstExit=false;
+                renderPieces();
+                nextTurn();
+                return;
+            }
+
+            let newPos = piece.position + chunk;
+
+            if(newPos>25){
+                illegalMove(player,"Overshoot Core.");
+                return;
+            }
+
+            if (newPos === 25) {
+                // Remove piece from board
+                piece.position = 25;
+
+                // Count this as a finished piece for the player
+                winsCount[player] = (winsCount[player] || 0) + 1;
+
+                renderPieces();
+
+                // If player finished all 4 pieces, place them (1st/2nd/3rd)
+                if (winsCount[player] === 4 && !placedPlayers.includes(player)) {
+                    placedPlayers.push(player);
+                    alert(player.toUpperCase() + " finished all 4 pieces! Place: " + placedPlayers.length);
+
+                    // End game when 3 players are placed
+                    if (placedPlayers.length === 3) {
+                    gameOver = true;
+                    alert("Game Over! Placed players: " + placedPlayers.map(p => p.toUpperCase()).join(", "));
+                    return;
+                    }
+                } else {
+                    alert(player.toUpperCase() + " piece reached Core! (" + winsCount[player] + "/4)");
+                }
+
+                nextTurn();
+                return;
+            }
+
+            
+            const landingSquare = rotatePosition(player,newPos);
+
+            if(!canEnterInner(player)){
+                if([17,18,19,21,22,23].includes(landingSquare)){
+                    illegalMove(player,"Inner locked. Eliminate first.");
+                    return;
+                }
+            }
+            const occupants = findPiecesOnSquare(landingSquare);
+
+            // Safe zone: stacking allowed, no elimination
+            if (isSafe(landingSquare)) {
+            // landing allowed, do nothing
+            } else {
+            // Non-safe: no stacking; landing on own piece is illegal
+            if (occupants.some(o => o.player === player)) {
+                illegalMove(player, "Own piece blocking.");
+                return;
+            }
+
+            // If an enemy is present, capture only if type matches
+            const enemy = occupants.find(o => o.player !== player);
+            if (enemy) {
+                if (piece.type === "knight" && enemy.type === "knight") {
+                eliminate(enemy);
+                } else if (piece.type === "king" && enemy.type === "king") {
+                eliminate(enemy);
+                } else {
+                illegalMove(player, "Wrong type combat.");
+                return;
+                }
+            }
+            }
+
+
+            piece.position = newPos;
+            illegalCounter[player] = 0;
+            renderPieces();
+            nextTurn();
+
+        }
+
+        function findPiecesOnSquare(square) {
+            const out = [];
+            for (let id in pieces) {
+                const pc = pieces[id];
+                if (pc.position === 0) continue;          // base not on path
+                if (pc.position === 25) continue;         // core removed from board
+                const rotated = rotatePosition(pc.player, pc.position);
+                if (rotated === square) out.push(pc);
+            }
+            return out;
+        }
+
+        function eliminate(capturedPiece) {
+            const capturer = getCurrentPlayer();
+
+            // Increment capturer's elimination count (unlock inner track logic uses this)
+            eliminationCount[capturer] = (eliminationCount[capturer] || 0) + 1;
+
+            // Reset only the captured piece back to base
+            capturedPiece.position = 0;
+            capturedPiece.firstExit = true;
+
+            alert("Elimination! Bonus roll granted.");
+        }
+
+
+        function illegalMove(player,msg){
+            illegalCounter[player]++;
+            if(illegalCounter[player]===1){
+                alert("Illegal Move: "+msg);
+            }
+            else if(illegalCounter[player]===2){
+                alert("Hint: Check other pieces.");
+            }
+            else{
+                alert("3 Illegal attempts. Turn skipped.");
+                illegalCounter[player]=0;
+                nextTurn();
+            }
+        }
+
+        function renderPieces(){
+            document.querySelectorAll(".cell").forEach(cell => {
+                const m = cell.className.match(/\bcell(\d+)\b/);
+                if (m) cell.dataset.square = m[1];
+            });
+
+
+            for(let id in pieces){
+                const piece = pieces[id];
+                if(piece.position>0 && piece.position<25){
+                    const square = rotatePosition(piece.player,piece.position);
+                    const cell = document.querySelector(`.cell[data-square="${square}"]`);
+                    if(cell){
+                        const div = document.createElement("div");
+                        div.className = "piece " + piece.type + " p-" + piece.player;
+                        if (piece.player === getCurrentPlayer()) div.classList.add("current-turn");
+                        div.innerText = piece.type==="king"?"👑":"♞";
+                        div.onclick=()=>attemptMove(id,4); // temp test move 4
+                        cell.appendChild(div);
+                    }
+                }
+            }
+        }
+
+        renderPieces();
+        function nextTurn() {
+            if (gameOver) return;
+            currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+
+            // Skip players who already placed (finished all 4)
+            let safety = 0;
+            while (placedPlayers.includes(getCurrentPlayer()) && safety < 10) {
+                currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+                safety++;
+            }
+
+            renderPieces();
+        }
+
+        function openRules(){
+            document.getElementById("rulesModal").style.display = "flex";
+        }
+
+        function closeRules(){
+            document.getElementById("rulesModal").style.display = "none";
+        }
+
+        function openSettings(){
+            document.getElementById("settingsModal").style.display = "flex";
+        }
+
+        function closeSettings(){
+            document.getElementById("settingsModal").style.display = "none";
+        }
+
+        window.onclick = function(event){
+            const rules = document.getElementById("rulesModal");
+            const settings = document.getElementById("settingsModal");
+
+            if(event.target === rules){
+                closeRules();
+            }
+            if(event.target === settings){
+                closeSettings();
+            }
+        }
+        document.addEventListener("DOMContentLoaded", function(){
+
+            const rulesModal = document.getElementById("rulesModal");
+            const settingsModal = document.getElementById("settingsModal");
+
+            const rulesBtn = document.getElementById("rulesBtn");
+            const settingsBtn = document.getElementById("settingsBtn");
+
+            const closeRulesBtn = document.getElementById("closeRulesBtn");
+            const closeSettingsBtn = document.getElementById("closeSettingsBtn");
+
+            // Open modals
+            rulesBtn.addEventListener("click", () => {
+                rulesModal.style.display = "flex";
+            });
+
+            settingsBtn.addEventListener("click", () => {
+                settingsModal.style.display = "flex";
+            });
+
+            // Close modals
+            closeRulesBtn.addEventListener("click", () => {
+                rulesModal.style.display = "none";
+            });
+
+            closeSettingsBtn.addEventListener("click", () => {
+                settingsModal.style.display = "none";
+            });
+
+            // Click outside to close
+            window.addEventListener("click", (event) => {
+                if(event.target === rulesModal){
+                    rulesModal.style.display = "none";
+                }
+                if(event.target === settingsModal){
+                    settingsModal.style.display = "none";
+                }
+            });
+
+        });
+
+    </script>
+
+</body>
+</html>
