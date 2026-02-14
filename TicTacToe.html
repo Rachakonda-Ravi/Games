@@ -1,0 +1,1355 @@
+<!doctype html>
+<html lang="en" data-theme="aurora" data-bg-anim="on">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TicTacToe</title>
+
+  <!-- One favicon tag (JS will switch it for light/dark for better compatibility) -->
+  <link id="favicon" rel="icon" type="image/png" href="./img/fireHallows.png">
+
+  <style>
+    :root{
+      --cell: 110px;
+      --gap: 12px;
+      --radius: 18px;
+      --mark-size: calc(var(--cell) * 0.62);
+
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.68);
+      --line: rgba(255,255,255,.18);
+      --shadow: 0 18px 60px rgba(0,0,0,.45);
+
+      --card: rgba(255,255,255,.08);
+      --card2: rgba(255,255,255,.12);
+
+      --accent:#34d399;
+      --accent2:#60a5fa;
+      --xColor:#7dd3fc;
+      --oColor:#fda4af;
+      --winBg: rgba(134,239,172,.22);
+
+      --panelTint: rgba(255,255,255,.08);
+      --panelTint2: rgba(255,255,255,.04);
+      --borderAlpha: .18;
+
+      /* Theme palette for LIVE aurora bg (overridden per theme) */
+      --g1:#2b6cb0;
+      --g2:#0ea5e9;
+      --g3:#34d399;
+      --g4:#a78bfa;
+      --g5:#fb7185;
+
+      /* Dark base behind aurora */
+      --bg1:#070a14;
+      --bg2:#0b1230;
+    }
+
+    html,body{ height:100%; }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Liberation Sans", sans-serif;
+      color:var(--text);
+      display:grid;
+      place-items:center;
+      padding:22px;
+      background: transparent;
+      overflow-x:hidden;
+    }
+
+    /* ========= TRUE animated aurora background (fixed, covers full viewport) ========= */
+    #bg{
+      position: fixed;
+      inset: 0;
+      z-index: -3;
+      pointer-events:none;
+      background: linear-gradient(180deg, var(--bg1), var(--bg2));
+    }
+
+    /* Layer 1: moving aurora waves (like your sample body::before) */
+    #bg::before{
+      content:"";
+      position:absolute;
+      inset:-20%;
+      background:
+        linear-gradient(45deg, transparent 30%, color-mix(in oklab, var(--g2) 42%, transparent) 50%, transparent 70%),
+        linear-gradient(-45deg, transparent 30%, color-mix(in oklab, var(--g5) 35%, transparent) 50%, transparent 70%),
+        linear-gradient(135deg, transparent 30%, color-mix(in oklab, var(--g4) 40%, transparent) 50%, transparent 70%);
+      filter: blur(6px) saturate(1.15);
+      opacity: .75;
+      transform: skewX(20deg);
+      animation: auroraWave 10s ease-in-out infinite;
+      will-change: transform, opacity;
+    }
+
+    /* Layer 2: curtains / blobs (like your sample body::after) */
+    #bg::after{
+      content:"";
+      position:absolute;
+      inset:-50%;
+      background:
+        radial-gradient(ellipse 30% 30% at 20% 20%, color-mix(in oklab, var(--g3) 35%, transparent), transparent 55%),
+        radial-gradient(ellipse 25% 25% at 80% 30%, color-mix(in oklab, var(--g5) 30%, transparent), transparent 55%),
+        radial-gradient(ellipse 22% 22% at 35% 70%, color-mix(in oklab, var(--g2) 26%, transparent), transparent 55%),
+        radial-gradient(ellipse 24% 24% at 75% 80%, color-mix(in oklab, var(--g4) 28%, transparent), transparent 55%);
+      filter: blur(18px) saturate(1.2);
+      opacity: .9;
+      animation: auroraCurtains 14s linear infinite;
+      will-change: transform;
+    }
+
+    /* Optional drift toggle */
+    html[data-bg-anim="off"] #bg::before,
+    html[data-bg-anim="off"] #bg::after{
+      animation: none;
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      #bg::before, #bg::after{ animation:none; }
+    }
+
+    @keyframes auroraWave{
+      0%,100% { transform: translateX(-12%) skewX(20deg); opacity:.55; }
+      50%     { transform: translateX(10%) skewX(-18deg); opacity:1; }
+    }
+    @keyframes auroraCurtains{
+      0%   { transform: translateY(0%) rotate(0deg); }
+      25%  { transform: translateY(-6%) rotate(2deg); }
+      50%  { transform: translateY(-3%) rotate(-1deg); }
+      75%  { transform: translateY(-5%) rotate(1deg); }
+      100% { transform: translateY(0%) rotate(0deg); }
+    }
+
+    /* Particles (lightweight, CSS only) */
+    .particles{
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      pointer-events:none;
+    }
+    .particle{
+      position:absolute;
+      width:4px; height:4px;
+      border-radius:999px;
+      background: rgba(255,255,255,.75);
+      box-shadow: 0 0 18px rgba(255,255,255,.25);
+      animation: floatUp 15s linear infinite;
+      opacity: 0;
+    }
+    @keyframes floatUp{
+      0%   { transform: translateY(110vh) scale(0.2); opacity:0; }
+      12%  { opacity:1; }
+      88%  { opacity:1; }
+      100% { transform: translateY(-120px) scale(1); opacity:0; }
+    }
+
+    /* ===== Themes (also affect aurora palette) ===== */
+    html[data-theme="aurora"]{
+      --accent:#34d399; --accent2:#60a5fa;
+      --xColor:#7dd3fc; --oColor:#fda4af;
+      --g1:#2b6cb0; --g2:#0ea5e9; --g3:#34d399; --g4:#a78bfa; --g5:#fb7185;
+      --panelTint: rgba(255,255,255,.08); --panelTint2: rgba(255,255,255,.04);
+      --borderAlpha:.18;
+    }
+    html[data-theme="sunset"]{
+      --accent:#fb7185; --accent2:#fbbf24;
+      --xColor:#fbbf24; --oColor:#fb7185;
+      --g1:#fb7185; --g2:#f59e0b; --g3:#fbbf24; --g4:#ef4444; --g5:#a855f7;
+      --panelTint: rgba(255,255,255,.09); --panelTint2: rgba(255,255,255,.05);
+      --borderAlpha:.20;
+    }
+    html[data-theme="royal"]{
+      --accent:#a78bfa; --accent2:#22d3ee;
+      --xColor:#22d3ee; --oColor:#a78bfa;
+      --g1:#4c1d95; --g2:#0ea5e9; --g3:#22d3ee; --g4:#a78bfa; --g5:#f472b6;
+      --panelTint: rgba(255,255,255,.07); --panelTint2: rgba(255,255,255,.035);
+      --borderAlpha:.16;
+    }
+    html[data-theme="mono"]{
+      --accent:#e5e7eb; --accent2:#9ca3af;
+      --xColor:#e5e7eb; --oColor:#9ca3af;
+      --g1:#111827; --g2:#374151; --g3:#6b7280; --g4:#9ca3af; --g5:#e5e7eb;
+      --panelTint: rgba(255,255,255,.05); --panelTint2: rgba(255,255,255,.02);
+      --borderAlpha:.14;
+      --winBg: rgba(255,255,255,.10);
+    }
+    html[data-theme="forest"]{
+      --accent:#22c55e; --accent2:#a3e635;
+      --xColor:#a3e635; --oColor:#22c55e;
+      --g1:#064e3b; --g2:#14532d; --g3:#22c55e; --g4:#84cc16; --g5:#16a34a;
+      --panelTint: rgba(34,197,94,.10); --panelTint2: rgba(0,0,0,.12);
+      --borderAlpha:.22;
+    }
+    html[data-theme="neon"]{
+      --accent:#22d3ee; --accent2:#f472b6;
+      --xColor:#22d3ee; --oColor:#f472b6;
+      --g1:#0ea5e9; --g2:#db2777; --g3:#22d3ee; --g4:#a78bfa; --g5:#f472b6;
+      --panelTint: rgba(244,114,182,.10); --panelTint2: rgba(34,211,238,.06);
+      --borderAlpha:.22;
+    }
+
+    /* ===== App layout ===== */
+    .app{ width:min(1050px, 100%); display:grid; gap:14px; }
+
+    .header{
+      display:grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap:10px;
+      align-items:center;
+      padding: 14px 16px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, var(--card), transparent);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      justify-content:center;
+    }
+    .logo{
+      width:38px; height:38px;
+      border-radius: 14px;
+      background:
+        radial-gradient(circle at 30% 30%, color-mix(in oklab, var(--accent2) 65%, white) 0%, transparent 55%),
+        radial-gradient(circle at 70% 70%, color-mix(in oklab, var(--accent) 55%, transparent) 0%, transparent 60%),
+        rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.22);
+      box-shadow: 0 14px 40px rgba(0,0,0,.35);
+      position:relative;
+      overflow:hidden;
+    }
+    .logo::after{
+      content:"";
+      position:absolute; inset:-40%;
+      background: linear-gradient(45deg, transparent 35%, rgba(255,255,255,.22) 50%, transparent 65%);
+      transform: rotate(20deg);
+      animation: logoSweep 4.5s ease-in-out infinite;
+    }
+    @keyframes logoSweep{
+      0%,100%{ transform: translateX(-30%) rotate(20deg); opacity:.25; }
+      50%{ transform: translateX(30%) rotate(20deg); opacity:.55; }
+    }
+
+    .header-left{ justify-self:start; }
+    .header-right{ justify-self:end; }
+
+    .header-btn{
+      appearance:none;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, var(--card2), rgba(255,255,255,.06));
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 14px;
+      font-weight: 800;
+      cursor:pointer;
+      transition: transform .12s ease, border-color .12s ease;
+      user-select:none;
+    }
+    .header-btn:hover{ transform: translateY(-1px); border-color: rgba(255,255,255,.32); }
+    .header-btn:active{ transform: translateY(0px) scale(.99); }
+
+    .game-title{
+      text-align:center;
+      font-weight: 950;
+      letter-spacing:.6px;
+      font-size: clamp(20px, 3.4vw, 30px);
+      line-height: 1.05;
+    }
+    .subtitle{
+      margin-top:6px;
+      color: var(--muted);
+      font-weight: 800;
+      font-size: 13px;
+      letter-spacing: .2px;
+    }
+
+    .layout{
+      display:grid;
+      grid-template-columns: 300px 1fr 320px;
+      gap:14px;
+      align-items:start;
+    }
+    @media (max-width: 980px){ .layout{ grid-template-columns: 1fr; } }
+
+    .panel{
+      border: 1px solid color-mix(in oklab, white calc(var(--borderAlpha)*100%), transparent);
+      border-radius: 22px;
+      background: linear-gradient(180deg, var(--panelTint), var(--panelTint2));
+      box-shadow: var(--shadow);
+      padding: 16px;
+      backdrop-filter: blur(12px) saturate(140%);
+      -webkit-backdrop-filter: blur(12px) saturate(140%);
+    }
+
+    .sideTitle{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:10px;
+    }
+    .sideTitle h2{
+      margin:0;
+      font-size: 15px;
+      letter-spacing:.25px;
+      color: rgba(255,255,255,.88);
+    }
+    .tiny{ font-size:12px; color: rgba(255,255,255,.65); font-weight: 800; }
+
+    .card{
+      border: 1px solid rgba(255,255,255,.16);
+      border-radius: 18px;
+      background: rgba(0,0,0,.18);
+      padding: 12px;
+    }
+
+    .themeList{ display:grid; gap:10px; }
+    .themeBtn{
+      width:100%;
+      text-align:left;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding: 10px 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      font-weight: 900;
+      cursor:pointer;
+      transition: transform .12s ease, border-color .12s ease;
+    }
+    .themeBtn:hover{ transform: translateY(-1px); border-color: rgba(255,255,255,.28); }
+    .themeBtn[aria-pressed="true"]{
+      border-color: color-mix(in oklab, var(--accent) 70%, rgba(255,255,255,.18));
+      box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 18%, transparent);
+    }
+
+    .swatches{ display:flex; gap:8px; align-items:center; }
+    .dot{
+      width:12px; height:12px; border-radius:999px;
+      border:1px solid rgba(255,255,255,.22);
+      background: var(--c);
+    }
+
+    .modeBox{ margin-top:12px; display:grid; gap:10px; }
+    .modeBtn{
+      width:100%;
+      text-align:center;
+      border:1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      border-radius: 16px;
+      padding: 10px 12px;
+      font-weight: 950;
+      cursor:pointer;
+      transition: transform .12s ease, border-color .12s ease;
+    }
+    .modeBtn:hover{ transform: translateY(-1px); border-color: rgba(255,255,255,.32); }
+    .modeBtn[aria-pressed="true"]{
+      border-color: color-mix(in oklab, var(--accent2) 70%, rgba(255,255,255,.18));
+      box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent2) 18%, transparent);
+    }
+
+    .meta{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      flex-wrap:wrap;
+      margin-bottom:12px;
+    }
+    .pill{
+      border:1px solid var(--line);
+      border-radius:999px;
+      padding:10px 12px;
+      background: rgba(255,255,255,.06);
+      font-weight:950;
+      letter-spacing:.2px;
+      min-width: 210px;
+      text-align:center;
+    }
+
+    .chip{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.06);
+      font-weight: 950;
+      letter-spacing:.15px;
+      user-select:none;
+    }
+    .chip::before{
+      content:"";
+      width:8px; height:8px;
+      border-radius:999px;
+      background: var(--dot, #fbbf24);
+      box-shadow: 0 0 0 3px color-mix(in oklab, var(--dot) 25%, transparent);
+    }
+    .chip-warn{ --dot:#fbbf24; }
+    .chip-win { --dot:#34d399; }
+    .chip-draw{ --dot:#60a5fa; }
+
+    .miniBtns{ display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
+    .btn{
+      appearance:none;
+      border:1px solid var(--line);
+      background:linear-gradient(180deg, var(--card2), rgba(255,255,255,.06));
+      color:var(--text);
+      border-radius:14px;
+      padding:10px 12px;
+      font-weight:950;
+      cursor:pointer;
+      transition: transform .12s ease, border-color .12s ease;
+    }
+    .btn:hover{ transform: translateY(-1px); border-color: rgba(255,255,255,.32); }
+    .btn:active{ transform: translateY(0px) scale(.99); }
+
+    .board{
+      width: calc(var(--cell) * 3 + var(--gap) * 2);
+      height: calc(var(--cell) * 3 + var(--gap) * 2);
+      margin-inline:auto;
+      display:grid;
+      grid-template-columns: repeat(3, var(--cell));
+      grid-template-rows: repeat(3, var(--cell));
+      gap: var(--gap);
+      padding: 6px;
+      border-radius: 22px;
+    }
+    .cell{
+      width: var(--cell);
+      height: var(--cell);
+      border-radius: var(--radius);
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(0,0,0,.18);
+      display:grid;
+      place-items:center;
+      cursor:pointer;
+      user-select:none;
+      transition: transform .12s ease, border-color .12s ease, background .12s ease;
+      font-size: var(--mark-size);
+      line-height: 1;
+      padding: 0;
+      position:relative;
+    }
+    .cell:hover{ transform: translateY(-1px); border-color: rgba(255,255,255,.30); background: rgba(0,0,0,.25); }
+    .cell:active{ transform: translateY(0px) scale(.99); }
+    .cell[disabled]{ cursor:not-allowed; opacity:.92; }
+    .cell .mark{
+      transform: translateY(2px);
+      filter: drop-shadow(0 14px 30px rgba(0,0,0,.42));
+    }
+    .mark.x{ color: var(--xColor); text-shadow: 0 12px 32px color-mix(in oklab, var(--xColor) 25%, transparent); }
+    .mark.o{ color: var(--oColor); text-shadow: 0 12px 32px color-mix(in oklab, var(--oColor) 25%, transparent); }
+
+    [data-animations="on"] .cell.pop .mark{ animation: pop .18s ease-out; }
+    @keyframes pop{
+      0%{ transform: translateY(2px) scale(.78); opacity:.25; }
+      100%{ transform: translateY(2px) scale(1); opacity:1; }
+    }
+    .cell.win{
+      border-color: color-mix(in oklab, var(--accent) 65%, rgba(255,255,255,.18));
+      background: var(--winBg);
+      box-shadow: 0 0 0 2px color-mix(in oklab, var(--accent) 12%, transparent) inset;
+    }
+
+    .note{
+      text-align:center;
+      color:var(--muted);
+      font-size:13px;
+      padding: 12px 6px 0;
+      line-height:1.35;
+    }
+
+    .counterGrid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+      margin-top:12px;
+    }
+    .stat{
+      padding:12px;
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+    }
+    .stat .k{
+      font-size:12.5px;
+      color: rgba(255,255,255,.68);
+      font-weight: 900;
+      letter-spacing:.2px;
+    }
+    .stat .v{
+      margin-top:6px;
+      font-size: 18px;
+      font-weight: 950;
+      letter-spacing:.2px;
+      display:flex;
+      align-items:baseline;
+      gap:8px;
+    }
+    .xTag{ color: var(--xColor); }
+    .oTag{ color: var(--oColor); }
+
+    dialog{
+      width: min(620px, 92vw);
+      border: 1px solid rgba(255,255,255,.22);
+      border-radius: 18px;
+      padding: 0;
+      color: var(--text);
+      background: linear-gradient(180deg, rgba(16,26,53,.92), rgba(11,16,32,.92));
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    dialog::backdrop{
+      background: rgba(0,0,0,.55);
+      backdrop-filter: blur(4px);
+    }
+    .dlgHero{
+      padding: 16px;
+      background:
+        radial-gradient(600px 220px at 10% 10%, color-mix(in oklab, var(--accent2) 40%, transparent) 0%, transparent 60%),
+        radial-gradient(560px 220px at 90% 40%, color-mix(in oklab, var(--accent) 38%, transparent) 0%, transparent 65%),
+        rgba(255,255,255,.04);
+      border-bottom: 1px solid rgba(255,255,255,.14);
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap: 12px;
+    }
+    .dlgTitle{
+      font-weight: 950;
+      letter-spacing: .3px;
+      font-size: 16px;
+      margin:0;
+    }
+    .dlgSub{
+      margin-top:6px;
+      color: rgba(255,255,255,.72);
+      font-weight: 800;
+      font-size: 12.5px;
+      line-height: 1.35;
+    }
+    .xBtn{
+      border: 1px solid rgba(255,255,255,.20);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 8px 10px;
+      cursor:pointer;
+      font-weight: 950;
+      height: 38px;
+    }
+    .dlgBody{ padding: 14px 16px 6px; }
+    .dlgFoot{
+      padding: 12px 16px 16px;
+      display:flex;
+      justify-content:flex-end;
+      gap:10px;
+    }
+
+    .settingsList{ display:grid; gap:10px; }
+    .settingRow{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 14px;
+      padding: 12px;
+      border-radius: 18px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.18);
+    }
+    .settingRow .label{ display:grid; gap:4px; }
+    .settingRow .name{ font-weight: 950; }
+    .settingRow .desc{ font-size: 12.5px; color: rgba(255,255,255,.65); font-weight: 800; }
+    .toggle{ display:flex; align-items:center; gap:10px; font-weight: 900; color: rgba(255,255,255,.85); }
+    input[type="checkbox"]{ width:18px; height:18px; accent-color: var(--accent2); }
+    .select{
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 8px 10px;
+      font-weight: 900;
+    }
+
+    @media (max-width: 420px){
+      :root{ --cell: 90px; --gap: 10px; }
+      .pill{ min-width: 170px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="bg" aria-hidden="true"></div>
+
+  <div class="particles" aria-hidden="true" id="particles">
+    <span class="particle" style="left:10%; animation-delay:0s;"></span>
+    <span class="particle" style="left:30%; animation-delay:2s;"></span>
+    <span class="particle" style="left:50%; animation-delay:4s;"></span>
+    <span class="particle" style="left:70%; animation-delay:6s;"></span>
+    <span class="particle" style="left:90%; animation-delay:8s;"></span>
+  </div>
+
+  <main class="app" id="appRoot" data-animations="on">
+    <div class="header">
+      <div class="header-left">
+        <button class="header-btn" id="settingsBtn">⚙️ Settings</button>
+      </div>
+
+      <div class="brand" aria-label="Brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div class="game-title">
+          TicTacToe
+          <div class="subtitle" id="subtitle">VS Player</div>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <button class="header-btn" id="rulesBtn">📜 Rules</button>
+      </div>
+    </div>
+
+    <section class="layout">
+      <!-- LEFT -->
+      <aside class="panel" aria-label="Themes">
+        <div class="sideTitle">
+          <h2>Themes</h2>
+          <span class="tiny" id="themeName">aurora</span>
+        </div>
+
+        <div class="themeList card" role="group" aria-label="Theme selection">
+          <button class="themeBtn" data-theme="aurora" aria-pressed="true">
+            Aurora
+            <span class="swatches" aria-hidden="true">
+              <span class="dot" style="--c:#34d399"></span>
+              <span class="dot" style="--c:#60a5fa"></span>
+            </span>
+          </button>
+          <button class="themeBtn" data-theme="sunset" aria-pressed="false">
+            Sunset
+            <span class="swatches" aria-hidden="true">
+              <span class="dot" style="--c:#fb7185"></span>
+              <span class="dot" style="--c:#fbbf24"></span>
+            </span>
+          </button>
+          <button class="themeBtn" data-theme="royal" aria-pressed="false">
+            Royal
+            <span class="swatches" aria-hidden="true">
+              <span class="dot" style="--c:#a78bfa"></span>
+              <span class="dot" style="--c:#22d3ee"></span>
+            </span>
+          </button>
+          <button class="themeBtn" data-theme="mono" aria-pressed="false">
+            Mono
+            <span class="swatches" aria-hidden="true">
+              <span class="dot" style="--c:#e5e7eb"></span>
+              <span class="dot" style="--c:#9ca3af"></span>
+            </span>
+          </button>
+          <button class="themeBtn" data-theme="forest" aria-pressed="false">
+            Forest
+            <span class="swatches" aria-hidden="true">
+              <span class="dot" style="--c:#228B22"></span>
+              <span class="dot" style="--c:#89F336"></span>
+            </span>
+          </button>
+          <button class="themeBtn" data-theme="neon" aria-pressed="false">
+            Neon
+            <span class="swatches" aria-hidden="true">
+              <span class="dot" style="--c:#00CAFF"></span>
+              <span class="dot" style="--c:#FF13F0"></span>
+            </span>
+          </button>
+        </div>
+
+        <div class="modeBox" aria-label="Mode left">
+          <button class="modeBtn" id="vsAiBtn" type="button" aria-pressed="false">VS AI</button>
+        </div>
+      </aside>
+
+      <!-- CENTER -->
+      <section class="panel" aria-label="Game">
+        <div class="meta">
+          <div class="pill" id="status" aria-live="polite">Turn: ❌</div>
+          <span class="chip chip-warn" id="roundChip" aria-live="polite">Unfinished</span>
+          <div class="miniBtns">
+            <button class="btn" id="resetBtn" type="button">Reset</button>
+            <button class="btn" id="newRoundBtn" type="button">New round</button>
+          </div>
+        </div>
+
+        <div class="board" id="board" role="grid" aria-label="Tic Tac Toe board">
+          <button class="cell" type="button" role="gridcell" aria-label="Cell 1"><span class="mark"></span></button>
+          <button class="cell" type="button" role="gridcell" aria-label="Cell 2"><span class="mark"></span></button>
+          <button class="cell" type="button" role="gridcell" aria-label="Cell 3"><span class="mark"></span></button>
+          <button class="cell" type="button" role="gridcell" aria-label="Cell 4"><span class="mark"></span></button>
+          <button class="cell" type="button" role="gridcell" aria-label="Cell 5"><span class="mark"></span></button>
+          <button class="cell" type="button" role="gridcell" aria-label="Cell 6"><span class="mark"></span></button>
+          <button class="cell" type="button" role="gridcell" aria-label="Cell 7"><span class="mark"></span></button>
+          <button class="cell" type="button" role="gridcell" aria-label="Cell 8"><span class="mark"></span></button>
+          <button class="cell" type="button" role="gridcell" aria-label="Cell 9"><span class="mark"></span></button>
+        </div>
+
+        <div class="note">Tip: Finish the game, then press “New round” to commit the score.</div>
+      </section>
+
+      <!-- RIGHT -->
+      <aside class="panel" aria-label="Counter">
+        <div class="sideTitle">
+          <h2>Counter</h2>
+          <span class="tiny">Persistent</span>
+        </div>
+
+        <div class="counterGrid">
+          <div class="stat">
+            <div class="k">❌ Score</div>
+            <div class="v"><span class="xTag">❌</span><span id="xScore">0</span></div>
+            <div class="tiny">Win=1, Draw=0.5, Loss=0</div>
+          </div>
+          <div class="stat">
+            <div class="k">⭕ Score</div>
+            <div class="v"><span class="oTag">⭕</span><span id="oScore">0</span></div>
+            <div class="tiny">Win=1, Draw=0.5, Loss=0</div>
+          </div>
+          <div class="stat">
+            <div class="k">Rounds</div>
+            <div class="v"><span>🎮</span><span id="rounds">0</span></div>
+            <div class="tiny">Committed when round ends</div>
+          </div>
+          <div class="stat">
+            <div class="k">Draws</div>
+            <div class="v"><span>🤝</span><span id="draws">0</span></div>
+            <div class="tiny">Committed when round ends</div>
+          </div>
+        </div>
+
+        <div style="margin-top:12px;" class="card">
+          <div class="tiny" style="line-height:1.4;">
+            Reset = clears board and scores.<br/>
+            New round = saves result (if finished) then clears board.<br/>
+            Auto reset = commits + clears automatically.
+          </div>
+        </div>
+
+        <div class="modeBox" aria-label="Mode right">
+          <button class="modeBtn" id="vsPlayerBtn" type="button" aria-pressed="true">VS Player</button>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <!-- Rules dialog -->
+  <dialog id="rulesDlg" aria-labelledby="rulesTitle">
+    <div class="dlgHero">
+      <div>
+        <h3 class="dlgTitle" id="rulesTitle">Rules</h3>
+        <div class="dlgSub">Alternate turns. 3-in-a-row wins. Full board without a win is a draw.</div>
+      </div>
+      <button class="xBtn" type="button" data-close="rulesDlg" aria-label="Close rules">✕</button>
+    </div>
+    <div class="dlgBody">
+      <div class="card">
+        <div class="tiny" style="line-height:1.5;">
+          VS Player: two humans.<br/>
+          VS AI: you are ❌, AI is ⭕.<br/>
+          Score commits on New round, or automatically when Auto reset is enabled.
+        </div>
+      </div>
+    </div>
+    <div class="dlgFoot">
+      <button class="btn" type="button" data-close="rulesDlg">Close</button>
+    </div>
+  </dialog>
+
+  <!-- Settings dialog -->
+  <dialog id="settingsDlg" aria-labelledby="settingsTitle">
+    <div class="dlgHero">
+      <div>
+        <h3 class="dlgTitle" id="settingsTitle">Settings</h3>
+        <div class="dlgSub">Saved automatically and restored next visit using localStorage.</div>
+      </div>
+      <button class="xBtn" type="button" data-close="settingsDlg" aria-label="Close settings">✕</button>
+    </div>
+
+    <div class="dlgBody">
+      <div class="settingsList">
+        <div class="settingRow">
+          <div class="label">
+            <div class="name">Animations</div>
+            <div class="desc">Pop effect when placing a mark.</div>
+          </div>
+          <label class="toggle">
+            <input id="animToggle" type="checkbox" checked />
+            On
+          </label>
+        </div>
+
+        <div class="settingRow">
+          <div class="label">
+            <div class="name">Sound</div>
+            <div class="desc">Move + win/draw tones (requires click to unlock audio).</div>
+          </div>
+          <label class="toggle">
+            <input id="soundToggle" type="checkbox" checked />
+            On
+          </label>
+        </div>
+
+        <div class="settingRow">
+          <div class="label">
+            <div class="name">Auto reset</div>
+            <div class="desc">After win/draw: commits score, then clears board.</div>
+          </div>
+          <label class="toggle">
+            <input id="autoResetToggle" type="checkbox" />
+            On
+          </label>
+        </div>
+
+        <div class="settingRow">
+          <div class="label">
+            <div class="name">Auto reset delay</div>
+            <div class="desc">Delay before commit+clear.</div>
+          </div>
+          <select class="select" id="autoResetDelay">
+            <option value="500">0.5s</option>
+            <option value="800">0.8s</option>
+            <option value="1200" selected>1.2s</option>
+            <option value="1800">1.8s</option>
+            <option value="2500">2.5s</option>
+          </select>
+        </div>
+
+        <div class="settingRow">
+          <div class="label">
+            <div class="name">Starter alternates</div>
+            <div class="desc">Each new round switches who starts.</div>
+          </div>
+          <label class="toggle">
+            <input id="altStarterToggle" type="checkbox" checked />
+            On
+          </label>
+        </div>
+
+        <div class="settingRow">
+          <div class="label">
+            <div class="name">Animated background</div>
+            <div class="desc">Aurora waves + curtains + particles.</div>
+          </div>
+          <label class="toggle">
+            <input id="bgAnimToggle" type="checkbox" checked />
+            On
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="dlgFoot">
+      <button class="btn" type="button" data-close="settingsDlg">Done</button>
+    </div>
+  </dialog>
+
+  <script>
+    // localStorage persists across browser sessions. [web:87]
+    const STORE_KEY = "ttt_v5";
+
+    function safeParse(json, fallback){
+      try { return JSON.parse(json); } catch { return fallback; }
+    }
+
+    // Favicon switching: more reliable across browsers than relying only on <link media="(prefers-color-scheme)">. [web:351][web:354]
+    (function setupFaviconSwitch(){
+      const lightHref = "./img/fireHallows.png";
+      const darkHref  = "./img/iceHallows.png";
+      const el = document.getElementById("favicon");
+      if (!el || !window.matchMedia) return;
+
+      const mq = window.matchMedia("(prefers-color-scheme: dark)");
+      function apply(){
+        el.setAttribute("href", mq.matches ? darkHref : lightHref);
+      }
+      apply();
+      if (typeof mq.addEventListener === "function") mq.addEventListener("change", apply);
+      else if (typeof mq.addListener === "function") mq.addListener(apply);
+    })();
+
+    const defaultState = {
+      theme: "aurora",
+      mode: "PVP",
+      settings: {
+        animations: true,
+        sound: true,
+        autoReset: false,
+        autoResetDelay: 1200,
+        starterAlternates: true,
+        bgAnim: true
+      },
+      score: { x: 0, o: 0, rounds: 0, draws: 0 },
+      starter: "X"
+    };
+
+    function loadState(){
+      const raw = localStorage.getItem(STORE_KEY);
+      const s = raw ? safeParse(raw, defaultState) : defaultState;
+      return {
+        theme: s.theme ?? defaultState.theme,
+        mode: (s.mode === "AI") ? "AI" : "PVP",
+        settings: { ...defaultState.settings, ...(s.settings || {}) },
+        score: { ...defaultState.score, ...(s.score || {}) },
+        starter: s.starter === "O" ? "O" : "X"
+      };
+    }
+
+    function saveState(){
+      localStorage.setItem(STORE_KEY, JSON.stringify(appState));
+    }
+
+    let appState = loadState();
+
+    const root = document.documentElement;
+    const appRoot = document.getElementById("appRoot");
+    const subtitle = document.getElementById("subtitle");
+
+    const statusEl = document.getElementById("status");
+    const roundChip = document.getElementById("roundChip");
+
+    const boardEl = document.getElementById("board");
+    const cells = Array.from(boardEl.querySelectorAll(".cell"));
+
+    const resetBtn = document.getElementById("resetBtn");
+    const newRoundBtn = document.getElementById("newRoundBtn");
+
+    const rulesBtn = document.getElementById("rulesBtn");
+    const settingsBtn = document.getElementById("settingsBtn");
+    const rulesDlg = document.getElementById("rulesDlg");
+    const settingsDlg = document.getElementById("settingsDlg");
+
+    const animToggle = document.getElementById("animToggle");
+    const soundToggle = document.getElementById("soundToggle");
+    const autoResetToggle = document.getElementById("autoResetToggle");
+    const autoResetDelay = document.getElementById("autoResetDelay");
+    const altStarterToggle = document.getElementById("altStarterToggle");
+    const bgAnimToggle = document.getElementById("bgAnimToggle");
+
+    const themeName = document.getElementById("themeName");
+    const themeBtns = Array.from(document.querySelectorAll(".themeBtn"));
+
+    const xScoreEl = document.getElementById("xScore");
+    const oScoreEl = document.getElementById("oScore");
+    const roundsEl = document.getElementById("rounds");
+    const drawsEl = document.getElementById("draws");
+
+    const vsAiBtn = document.getElementById("vsAiBtn");
+    const vsPlayerBtn = document.getElementById("vsPlayerBtn");
+
+    const WINS = [
+      [0,1,2],[3,4,5],[6,7,8],
+      [0,3,6],[1,4,7],[2,5,8],
+      [0,4,8],[2,4,6]
+    ];
+    const MARK = { X:"❌", O:"⭕" };
+
+    let board = Array(9).fill("");
+    let turn = "X";
+    let over = false;
+    let pendingTimer = null;
+    let lastResult = { finished:false, winner:null, draw:false };
+
+    const HUMAN = "X";
+    const AI = "O";
+
+    function setStatus(t){ statusEl.textContent = t; }
+    function setChip(kind, text){
+      roundChip.classList.remove("chip-warn","chip-win","chip-draw");
+      roundChip.classList.add(kind === "win" ? "chip-win" : kind === "draw" ? "chip-draw" : "chip-warn");
+      roundChip.textContent = text;
+    }
+    function clearPending(){
+      if (pendingTimer) clearTimeout(pendingTimer);
+      pendingTimer = null;
+    }
+
+    function getWinnerFor(b){
+      for (const line of WINS){
+        const [a,b2,c] = line;
+        if (b[a] && b[a] === b[b2] && b[a] === b[c]){
+          return { player: b[a], line };
+        }
+      }
+      return null;
+    }
+    function isDrawFor(b){ return b.every(v => v); }
+    function getWinner(){ return getWinnerFor(board); }
+    function isDraw(){ return isDrawFor(board); }
+
+    /* Sound */
+    let ac = null;
+    function ensureAudio(){
+      if (!appState.settings.sound) return null;
+      if (ac) return ac;
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) return null;
+      ac = new AudioContext();
+      return ac;
+    }
+    function beep({freq=440, ms=70, type="sine", gain=0.03} = {}){
+      if (!appState.settings.sound) return;
+      const ctx = ensureAudio();
+      if (!ctx) return;
+
+      const t0 = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, t0);
+
+      g.gain.setValueAtTime(0.00001, t0);
+      g.gain.linearRampToValueAtTime(gain, t0 + 0.01);
+      g.gain.linearRampToValueAtTime(0.00001, t0 + ms/1000);
+
+      osc.connect(g); g.connect(ctx.destination);
+      osc.start(t0);
+      osc.stop(t0 + ms/1000 + 0.02);
+    }
+    const sfxMove = (p) => beep({ freq: p==="X" ? 520 : 430, ms: 55, type:"triangle", gain:0.03 });
+    const sfxWin  = () => { beep({freq:660,ms:90,gain:0.035}); setTimeout(()=>beep({freq:880,ms:100,gain:0.035}),80); };
+    const sfxDraw = () => beep({freq:220,ms:120,gain:0.03});
+
+    function renderCell(i){
+      const cell = cells[i];
+      const markEl = cell.querySelector(".mark");
+      const v = board[i];
+
+      markEl.textContent = v ? MARK[v] : "";
+      markEl.className = "mark" + (v ? (" " + (v === "X" ? "x" : "o")) : "");
+
+      cell.disabled = !!v || over;
+      cell.setAttribute("aria-label", `Cell ${i+1} ${v ? MARK[v] : "empty"}`);
+    }
+
+    function renderAllCells(){
+      cells.forEach((_, i) => {
+        cells[i].classList.remove("win", "pop");
+        renderCell(i);
+      });
+    }
+
+    function renderScore(){
+      xScoreEl.textContent = (Math.round(appState.score.x * 10) / 10).toString();
+      oScoreEl.textContent = (Math.round(appState.score.o * 10) / 10).toString();
+      roundsEl.textContent = String(appState.score.rounds);
+      drawsEl.textContent = String(appState.score.draws);
+    }
+
+    function commitRoundResult(){
+      if (!lastResult.finished) return false;
+
+      appState.score.rounds += 1;
+
+      if (lastResult.draw){
+        appState.score.draws += 1;
+        appState.score.x += 0.5;
+        appState.score.o += 0.5;
+      } else if (lastResult.winner === "X"){
+        appState.score.x += 1;
+      } else if (lastResult.winner === "O"){
+        appState.score.o += 1;
+      }
+
+      saveState();
+      renderScore();
+      return true;
+    }
+
+    function startRound(){
+      clearPending();
+      board = Array(9).fill("");
+      over = false;
+      lastResult = { finished:false, winner:null, draw:false };
+
+      turn = appState.starter;
+
+      renderAllCells();
+      setStatus(`Turn: ${MARK[turn]}`);
+      setChip("unfinished","Unfinished");
+
+      if (appState.mode === "AI" && turn === AI){
+        requestAiMove();
+      }
+    }
+
+    function endGame({winner=null, winLine=null, draw=false}){
+      over = true;
+      lastResult = { finished:true, winner, draw };
+
+      if (winLine) winLine.forEach(i => cells[i].classList.add("win"));
+      cells.forEach((_, i) => renderCell(i));
+
+      if (winner){
+        setStatus(`Winner: ${MARK[winner]}`);
+        setChip("win", `Win: ${MARK[winner]}`);
+        sfxWin();
+      } else if (draw){
+        setStatus(`Result: Draw`);
+        setChip("draw", "Draw");
+        sfxDraw();
+      }
+
+      if (appState.settings.autoReset){
+        const delay = Number(appState.settings.autoResetDelay || 1200);
+        pendingTimer = setTimeout(() => {
+          // Auto reset now commits, then clears.
+          commitRoundResult();
+
+          if (appState.settings.starterAlternates){
+            appState.starter = (appState.starter === "X") ? "O" : "X";
+          } else {
+            appState.starter = "X";
+          }
+          saveState();
+
+          startRound();
+        }, delay);
+      }
+    }
+
+    function play(i){
+      if (over || board[i]) return;
+      if (appState.mode === "AI" && turn === AI) return;
+
+      board[i] = turn;
+
+      const cell = cells[i];
+      if (appState.settings.animations){
+        cell.classList.remove("pop");
+        void cell.offsetWidth;
+        cell.classList.add("pop");
+      }
+
+      renderCell(i);
+      sfxMove(turn);
+
+      const w = getWinner();
+      if (w){ endGame({ winner: w.player, winLine: w.line, draw:false }); return; }
+      if (isDraw()){ endGame({ winner: null, winLine: null, draw:true }); return; }
+
+      turn = (turn === "X") ? "O" : "X";
+      setStatus(`Turn: ${MARK[turn]}`);
+
+      if (appState.mode === "AI" && turn === AI){
+        requestAiMove();
+      }
+    }
+
+    /* AI: minimax */
+    function scoreTerminal(b, depth){
+      const w = getWinnerFor(b);
+      if (w?.player === AI) return 10 - depth;
+      if (w?.player === HUMAN) return depth - 10;
+      if (isDrawFor(b)) return 0;
+      return null;
+    }
+
+    function minimax(b, depth, isMax){
+      const terminal = scoreTerminal(b, depth);
+      if (terminal !== null) return terminal;
+
+      if (isMax){
+        let best = -Infinity;
+        for (let i = 0; i < 9; i++){
+          if (!b[i]){
+            b[i] = AI;
+            const val = minimax(b, depth + 1, false);
+            b[i] = "";
+            best = Math.max(best, val);
+          }
+        }
+        return best;
+      } else {
+        let best = Infinity;
+        for (let i = 0; i < 9; i++){
+          if (!b[i]){
+            b[i] = HUMAN;
+            const val = minimax(b, depth + 1, true);
+            b[i] = "";
+            best = Math.min(best, val);
+          }
+        }
+        return best;
+      }
+    }
+
+    function findBestMove(b){
+      let bestScore = -Infinity;
+      let bestIdx = -1;
+      for (let i = 0; i < 9; i++){
+        if (!b[i]){
+          b[i] = AI;
+          const score = minimax(b, 0, false);
+          b[i] = "";
+          if (score > bestScore){
+            bestScore = score;
+            bestIdx = i;
+          }
+        }
+      }
+      return bestIdx;
+    }
+
+    function requestAiMove(){
+      if (over) return;
+      setTimeout(() => {
+        if (over || turn !== AI) return;
+        const idx = findBestMove(board.slice());
+        if (idx < 0) return;
+
+        board[idx] = AI;
+
+        const cell = cells[idx];
+        if (appState.settings.animations){
+          cell.classList.remove("pop");
+          void cell.offsetWidth;
+          cell.classList.add("pop");
+        }
+
+        renderCell(idx);
+        sfxMove(AI);
+
+        const w = getWinner();
+        if (w){ endGame({ winner: w.player, winLine: w.line, draw:false }); return; }
+        if (isDraw()){ endGame({ winner: null, winLine: null, draw:true }); return; }
+
+        turn = HUMAN;
+        setStatus(`Turn: ${MARK[turn]}`);
+      }, 180);
+    }
+
+    function resetAll(){
+      clearPending();
+      appState.score = { x:0, o:0, rounds:0, draws:0 };
+      appState.starter = "X";
+      saveState();
+      renderScore();
+      startRound();
+    }
+
+    function setTheme(theme){
+      appState.theme = theme;
+      root.setAttribute("data-theme", theme);
+      themeName.textContent = theme;
+
+      themeBtns.forEach(btn => {
+        const on = btn.dataset.theme === theme;
+        btn.setAttribute("aria-pressed", on ? "true" : "false");
+      });
+
+      saveState();
+    }
+
+    function applyModeToUI(){
+      const aiOn = appState.mode === "AI";
+      vsAiBtn.setAttribute("aria-pressed", aiOn ? "true" : "false");
+      vsPlayerBtn.setAttribute("aria-pressed", aiOn ? "false" : "true");
+      subtitle.textContent = aiOn ? "VS AI" : "VS Player";
+    }
+    function setMode(mode){
+      appState.mode = (mode === "AI") ? "AI" : "PVP";
+      saveState();
+      applyModeToUI();
+      startRound();
+    }
+
+    function applySettingsToUI(){
+      animToggle.checked = !!appState.settings.animations;
+      soundToggle.checked = !!appState.settings.sound;
+      autoResetToggle.checked = !!appState.settings.autoReset;
+      autoResetDelay.value = String(appState.settings.autoResetDelay ?? 1200);
+      altStarterToggle.checked = !!appState.settings.starterAlternates;
+      bgAnimToggle.checked = !!appState.settings.bgAnim;
+
+      appRoot.dataset.animations = appState.settings.animations ? "on" : "off";
+      root.dataset.bgAnim = appState.settings.bgAnim ? "on" : "off";
+    }
+    function updateSetting(key, value){
+      appState.settings[key] = value;
+      saveState();
+      applySettingsToUI();
+    }
+
+    function openDlg(dlg, openerBtn){
+      dlg._opener = openerBtn || null;
+      if (typeof dlg.showModal === "function") dlg.showModal();
+      else dlg.setAttribute("open", "");
+      const closeBtn = dlg.querySelector("[data-close]");
+      if (closeBtn) closeBtn.focus();
+    }
+    function closeDlg(dlg){
+      if (typeof dlg.close === "function") dlg.close();
+      else dlg.removeAttribute("open");
+      if (dlg._opener) dlg._opener.focus();
+      dlg._opener = null;
+    }
+    document.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-close]");
+      if (!btn) return;
+      const id = btn.getAttribute("data-close");
+      const dlg = document.getElementById(id);
+      if (dlg) closeDlg(dlg);
+    });
+
+    /* Events */
+    cells.forEach((cell, i) => cell.addEventListener("click", () => play(i)));
+
+    resetBtn.addEventListener("click", resetAll);
+
+    newRoundBtn.addEventListener("click", () => {
+      commitRoundResult();
+
+      if (appState.settings.starterAlternates){
+        appState.starter = (appState.starter === "X") ? "O" : "X";
+      } else {
+        appState.starter = "X";
+      }
+      saveState();
+
+      startRound();
+    });
+
+    rulesBtn.addEventListener("click", () => openDlg(rulesDlg, rulesBtn));
+    settingsBtn.addEventListener("click", () => openDlg(settingsDlg, settingsBtn));
+
+    themeBtns.forEach(btn => btn.addEventListener("click", () => setTheme(btn.dataset.theme)));
+
+    animToggle.addEventListener("change", () => updateSetting("animations", animToggle.checked));
+    soundToggle.addEventListener("change", () => updateSetting("sound", soundToggle.checked));
+    autoResetToggle.addEventListener("change", () => { clearPending(); updateSetting("autoReset", autoResetToggle.checked); });
+    autoResetDelay.addEventListener("change", () => updateSetting("autoResetDelay", Number(autoResetDelay.value)));
+    altStarterToggle.addEventListener("change", () => updateSetting("starterAlternates", altStarterToggle.checked));
+    bgAnimToggle.addEventListener("change", () => updateSetting("bgAnim", bgAnimToggle.checked));
+
+    vsAiBtn.addEventListener("click", () => setMode("AI"));
+    vsPlayerBtn.addEventListener("click", () => setMode("PVP"));
+
+    document.addEventListener("pointerdown", () => { if (appState.settings.sound) ensureAudio(); }, { once:true });
+
+    /* Boot */
+    setTheme(appState.theme);
+    applySettingsToUI();
+    applyModeToUI();
+    renderScore();
+    startRound();
+  </script>
+</body>
+</html>
