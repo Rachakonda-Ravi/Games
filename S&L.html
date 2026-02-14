@@ -1,0 +1,872 @@
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>House of the Games - Snake & Ladder</title>
+
+    <style>
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: radial-gradient(circle at top left, rgba(255, 80, 200, 0.25), transparent 55%),
+                radial-gradient(circle at bottom right, rgba(255, 140, 60, 0.25), transparent 55%),
+                linear-gradient(135deg, #120018 0%, #2B0040 45%, #3A0A2E 100%);
+        color: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+      }
+
+      .container {
+        display: flex;
+        gap: 30px;
+        padding: 20px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .board-wrapper {
+    position: relative;
+    width: 520px;
+    height: 520px;
+  }
+
+
+  #snakeCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 3;   /* 🔥 important */
+    pointer-events: none;
+    opacity: 0.85;
+  }
+
+
+
+  .board {
+    width: 520px;
+    height: 520px;
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    grid-template-rows: repeat(10, 1fr);
+    border: 5px solid #FFD45A;
+    border-radius: 12px;
+    overflow: hidden;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: white;
+    z-index: 2;
+  }
+
+
+
+    .cell {
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    background: transparent;
+    position: relative;
+    font-size: 13px;
+    font-weight: bold;
+    color: black;
+    padding: 3px;
+    z-index: 1;
+  }
+
+
+      .token {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    position: absolute;
+    bottom: 6px;
+    right: 6px;
+
+    border: 2px solid black;
+
+    /* 🔥 strong highlight */
+    box-shadow: 0 0 8px rgba(255,255,255,0.9),
+                0 0 15px rgba(255,215,0,0.8),
+                0 0 25px rgba(255,215,0,0.6);
+
+    z-index: 9999;  /* ALWAYS above everything */
+    transform: scale(1.15);
+  }
+  @keyframes pulseGlow {
+    0% {
+      transform: scale(1.1);
+      box-shadow: 0 0 8px rgba(255,255,255,0.9),
+                  0 0 15px rgba(255,215,0,0.8),
+                  0 0 25px rgba(255,215,0,0.6);
+    }
+    100% {
+      transform: scale(1.3);
+      box-shadow: 0 0 12px rgba(255,255,255,1),
+                  0 0 25px rgba(255,215,0,1),
+                  0 0 45px rgba(255,215,0,0.9);
+    }
+  }
+
+  .token {
+    animation: pulseGlow 0.8s infinite alternate;
+  }
+
+
+      .p1 { background: red; }
+      .p2 { background: blue; }
+      .p3 { background: gold; }
+      .p4 { background: limegreen; }
+
+      .panel {
+        width: 330px;
+        background: rgba(0, 0, 0, 0.55);
+        padding: 20px;
+        border-radius: 16px;
+        box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.7);
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 22px;
+        text-align: center;
+        color: #FFD45A;
+      }
+
+      .mode-box {
+        margin-top: 15px;
+        padding: 12px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      label {
+        display: block;
+        margin-top: 8px;
+        font-size: 14px;
+      }
+
+      select, input {
+        width: 100%;
+        padding: 10px;
+        margin-top: 5px;
+        border-radius: 10px;
+        border: none;
+        outline: none;
+        font-size: 14px;
+      }
+
+      input:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      button {
+        width: 100%;
+        margin-top: 12px;
+        padding: 12px;
+        border-radius: 12px;
+        border: none;
+        background: #D72638;
+        color: white;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.2s;
+      }
+
+      button:hover {
+        background: #F4B41A;
+        color: black;
+      }
+
+      .dice {
+        font-size: 50px;
+        text-align: center;
+        margin-top: 10px;
+      }
+
+      .status {
+        margin-top: 15px;
+        background: rgba(255, 255, 255, 0.12);
+        padding: 12px;
+        border-radius: 12px;
+        font-size: 15px;
+        text-align: center;
+        line-height: 1.6;
+      }
+
+      .turn {
+        font-weight: bold;
+        color: #FFD45A;
+        font-size: 16px;
+      }
+
+      .winner {
+        margin-top: 15px;
+        padding: 12px;
+        border-radius: 12px;
+        text-align: center;
+        font-weight: bold;
+        font-size: 18px;
+        background: rgba(0, 255, 100, 0.2);
+        color: #00ff80;
+        display: none;
+      }
+      .cell-num {
+    position: absolute;
+    top: 3px;
+    left: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    z-index: 50;
+    color: black;
+  }
+  .cell-num {
+    position: absolute;
+    top: 3px;
+    left: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    color: black;
+    z-index: 20;
+  }
+  .glow {
+    animation: glowAnim 1s ease-in-out infinite alternate;
+  }
+
+  @keyframes glowAnim {
+    from {
+      box-shadow: 0 0 5px gold, 0 0 15px gold, 0 0 25px yellow;
+      transform: scale(1);
+    }
+    to {
+      box-shadow: 0 0 15px gold, 0 0 25px orange, 0 0 40px yellow;
+      transform: scale(1.05);
+    }
+  }
+  #restartBtn {
+    padding: 12px 18px;
+    font-size: 15px;
+    font-weight: bold;
+    border: none;
+    border-radius: 10px;
+    background: crimson;
+    color: white;
+    cursor: pointer;
+    margin-left: 2px;
+    transition: 0.3s;
+  }
+
+  #restartBtn:hover {
+    background: darkred;
+    transform: scale(1.05);
+  }
+  #playersInput {
+  width: 288px;
+  }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+
+      <!-- BOARD -->
+      <div class="board-wrapper">
+    <canvas id="snakeCanvas" width="520" height="520"></canvas>
+    <div class="board" id="board"></div>
+  </div>
+
+
+
+      <!-- PANEL -->
+      <div class="panel">
+        <h1>🎲 Snake & Ladder</h1>
+
+        <div class="mode-box">
+          <label>Select Mode</label>
+          <select id="mode" onchange="togglePlayerInput()">
+            <option value="computer">Single Player vs Computer</option>
+            <option value="multiplayer">Multiplayer (2-4 Players)</option>
+          </select>
+
+          <label>Number of Players (2-4)</label>
+          <input type="number" id="playersInput" value="2" min="2" max="4" />
+
+          <button onclick="startGame()">Start Game</button>
+        </div>
+
+        <div class="dice" id="diceDisplay">🎲</div>
+        <button onclick="rollDice()" id="rollBtn" disabled>Roll Dice</button>
+        <button id="restartBtn">Restart Game</button>
+
+        <div class="status" id="statusBox">
+          Game not started.
+        </div>
+
+        <div class="winner" id="winnerBox"></div>
+      </div>
+
+    </div>
+
+    <script>
+      let animationFrame;
+      let blinkState = 0;
+      let tongueState = 0;
+      let waveOffset = 0;
+      let snakeAnim = {};
+      let isAnimating = false;
+      let animPlayer = null;
+      let animPath = [];
+
+      const board = document.getElementById("board");
+      const diceDisplay = document.getElementById("diceDisplay");
+      const statusBox = document.getElementById("statusBox");
+      const rollBtn = document.getElementById("rollBtn");
+      const winnerBox = document.getElementById("winnerBox");
+      const modeSelect = document.getElementById("mode");
+      const playersInput = document.getElementById("playersInput");
+      let animProgress = 0;
+
+      const snakes = {99:54,70:55,52:42,25:2,95:72,60:23};
+      const ladders = {6:25,11:40,17:69,46:90,61:84,73:94};
+
+      function initSnakeAnimations() {
+        snakeAnim = {};
+        Object.keys(snakes).forEach(head => {
+          snakeAnim[head] = {
+            waveSpeed: 0.5 + Math.random()*2.5,
+            blinkSpeed: 0.01 + Math.random()*0.03,
+            tongueSpeed: 0.02 + Math.random()*0.05,
+            waveOffset: Math.random()*100,
+            blinkState: Math.random(),
+            tongueState: Math.random()
+          };
+        });
+      }
+      initSnakeAnimations();  // SAFE NOW
+
+
+      function togglePlayerInput() {
+        if (modeSelect.value === "computer") {
+          playersInput.disabled = true;
+          playersInput.value = 2;
+        } else {
+          playersInput.disabled = false;
+        }
+      }
+
+      togglePlayerInput();
+
+      function createBoard() {
+        board.innerHTML = "";
+
+        let numbers = [];
+        for (let row = 9; row >= 0; row--) {
+          let rowNums = [];
+          for (let col = 1; col <= 10; col++) {
+            rowNums.push(row * 10 + col);
+          }
+          if ((9 - row) % 2 === 1) rowNums.reverse();
+          numbers = numbers.concat(rowNums);
+        }
+
+        numbers.forEach(num => {
+          const cell = document.createElement("div");
+          cell.classList.add("cell");
+          cell.id = "cell-" + num;
+          cell.innerHTML = `<span class="cell-num">${num}</span>`;
+          board.appendChild(cell);
+        });
+      }
+
+      function getCellCenter(cellNumber) {
+        const cell = document.getElementById("cell-" + cellNumber);
+        if (!cell) return null;
+
+        const cellRect = cell.getBoundingClientRect();
+        const wrapperRect = document.querySelector(".board-wrapper").getBoundingClientRect();
+
+        return {
+          x: (cellRect.left - wrapperRect.left) + cellRect.width / 2,
+          y: (cellRect.top - wrapperRect.top) + cellRect.height / 2
+        };
+      }
+
+
+
+
+      function drawSnakesAndLadders() {
+        const canvas = document.getElementById("snakeCanvas");
+        const ctx = canvas.getContext("2d");
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // ------------------ LADDERS (WOODEN) ------------------
+        Object.keys(ladders).forEach(start => {
+          const end = ladders[start];
+          const p1 = getCellCenter(parseInt(start));
+          const p2 = getCellCenter(end);
+
+          if (!p1 || !p2) return;
+
+          // ladder shadow
+          ctx.shadowColor = "rgba(0,0,0,0.35)";
+          ctx.shadowBlur = 6;
+
+          // rails
+          ctx.strokeStyle = "#7A4A1D";
+          ctx.lineWidth = 10;
+
+          ctx.beginPath();
+          ctx.moveTo(p1.x - 10, p1.y);
+          ctx.lineTo(p2.x - 10, p2.y);
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.moveTo(p1.x + 10, p1.y);
+          ctx.lineTo(p2.x + 10, p2.y);
+          ctx.stroke();
+
+          // steps
+          ctx.shadowBlur = 0;
+          ctx.strokeStyle = "#C68642";
+          ctx.lineWidth = 6;
+
+          for (let i = 0; i <= 8; i++) {
+            const t = i / 8;
+            const x = p1.x + (p2.x - p1.x) * t;
+            const y = p1.y + (p2.y - p1.y) * t;
+
+            ctx.beginPath();
+            ctx.moveTo(x - 16, y - 3);
+            ctx.lineTo(x + 16, y + 3);
+            ctx.stroke();
+          }
+
+          // ladder nails
+          ctx.fillStyle = "#3a2a1a";
+          for (let i = 0; i <= 6; i++) {
+            const t = i / 6;
+            const x = p1.x + (p2.x - p1.x) * t;
+            const y = p1.y + (p2.y - p1.y) * t;
+
+            ctx.beginPath();
+            ctx.arc(x - 10, y, 2, 0, Math.PI * 2);
+            ctx.arc(x + 10, y, 2, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        });
+
+        // ------------------ SNAKES (ANIMATED) ------------------
+        Object.keys(snakes).forEach(head => {
+          const tail = snakes[head];
+          const p1 = getCellCenter(parseInt(head));
+          const p2 = getCellCenter(tail);
+          const anim = snakeAnim[head];
+
+          if (!p1 || !p2 || !anim) return;  // 🔥 PROTECT AGAINST UNDEFINED
+
+          // snake gradient
+          const grad = ctx.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
+          grad.addColorStop(0, "#003300");
+          grad.addColorStop(0.5, "#00aa00");
+          grad.addColorStop(1, "#001a00");
+
+          ctx.shadowColor = "rgba(0,0,0,0.4)";
+          ctx.shadowBlur = 8;
+
+          ctx.strokeStyle = grad;
+          ctx.lineWidth = 15;
+          ctx.lineCap = "round";
+
+          // animated wave control points
+          const midX = (p1.x + p2.x) / 2;
+          const midY = (p1.y + p2.y) / 2;
+
+          const waveX = Math.sin(anim.waveOffset / 10) * 50;
+          const waveY = Math.cos(anim.waveOffset / 10) * 50;
+
+
+          ctx.beginPath();
+          ctx.moveTo(p1.x, p1.y);
+          ctx.bezierCurveTo(
+            midX + waveX, midY - waveY,
+            midX - waveX, midY + waveY,
+            p2.x, p2.y
+          );
+          ctx.stroke();
+
+          // snake scale shine
+          ctx.shadowBlur = 0;
+          ctx.strokeStyle = "rgba(255,255,255,0.18)";
+          ctx.lineWidth = 2;
+
+          for (let i = 0; i <= 12; i++) {
+            const t = i / 12;
+            const x = p1.x + (p2.x - p1.x) * t;
+            const y = p1.y + (p2.y - p1.y) * t;
+
+            ctx.beginPath();
+            ctx.arc(x, y, 6, 0, Math.PI);
+            ctx.stroke();
+          }
+
+          // ------------------ HEAD ------------------
+          ctx.fillStyle = "#002200";
+          ctx.beginPath();
+          ctx.arc(p1.x, p1.y, 16, 0, Math.PI * 2);
+          ctx.fill();
+
+          // ------------------ EYES (BLINKING) ------------------
+          ctx.fillStyle = "white";
+          ctx.beginPath();
+          ctx.arc(p1.x - 6, p1.y - 5, 5, 0, Math.PI * 2);
+          ctx.arc(p1.x + 6, p1.y - 5, 5, 0, Math.PI * 2);
+          ctx.fill();
+
+          // pupils
+          ctx.fillStyle = "black";
+          ctx.beginPath();
+          ctx.arc(p1.x - 6, p1.y - 5, 2, 0, Math.PI * 2);
+          ctx.arc(p1.x + 6, p1.y - 5, 2, 0, Math.PI * 2);
+          ctx.fill();
+
+          // blinking eyelids
+          if (anim.blinkState > 0.8) {
+            ctx.fillStyle = "#002200";
+            ctx.beginPath();
+            ctx.ellipse(p1.x - 6, p1.y - 5, 6, 5, 0, 0, Math.PI * 2);
+            ctx.ellipse(p1.x + 6, p1.y - 5, 6, 5, 0, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          // ------------------ TONGUE (IN-OUT) ------------------
+          if (anim.tongueState > 0.6) {
+            ctx.strokeStyle = "red";
+            ctx.lineWidth = 3;
+
+            ctx.beginPath();
+            ctx.moveTo(p1.x, p1.y + 10);
+            ctx.lineTo(p1.x, p1.y + 22);
+
+            ctx.lineTo(p1.x - 6, p1.y + 28);
+            ctx.moveTo(p1.x, p1.y + 22);
+            ctx.lineTo(p1.x + 6, p1.y + 28);
+
+            ctx.stroke();
+          }
+
+          // tail end
+          ctx.fillStyle = "#001a00";
+          ctx.beginPath();
+          ctx.arc(p2.x, p2.y, 10, 0, Math.PI * 2);
+          ctx.fill();
+        });
+      }
+
+      function animateMove(player, startPos, endPos, callback) {
+        if (isAnimating) return;
+        isAnimating = true;
+        animPlayer = player;
+        animProgress = 0;
+        
+        // Path from start+1 to end
+        animPath = [];
+        for (let pos = startPos + 1; pos <= endPos; pos++) {
+          animPath.push(pos);
+        }
+        
+        // Hide static token
+        document.querySelectorAll(`.token.${player.class}`).forEach(t => {
+          t.style.opacity = 0;
+        });
+        
+        const duration = 40 * animPath.length;  // 40ms per cell
+        const startTime = performance.now();
+        const canvas = document.getElementById("snakeCanvas");
+        const ctx = canvas.getContext("2d");
+        
+        function animate(currentTime) {
+          const elapsed = currentTime - startTime;
+          animProgress = Math.min(elapsed / duration, 1);
+          
+          // Clear previous token draw (redraw snakes first)
+          drawSnakesAndLadders();
+          
+          // Calculate current position
+          const step = 1 / Math.max(animPath.length, 1);
+          const currentStep = Math.floor(animProgress / step);
+          const frac = (animProgress % step) / step;
+          
+          let currPos = startPos;
+          let nextPos = startPos;
+          
+          if (currentStep < animPath.length) {
+            currPos = animPath[currentStep];
+            nextPos = animPath[Math.min(currentStep + 1, animPath.length - 1)];
+          }
+          
+          const currCenter = getCellCenter(currPos);
+          const nextCenter = getCellCenter(nextPos);
+          
+          if (currCenter && nextCenter) {
+            const midX = currCenter.x + (nextCenter.x - currCenter.x) * frac;
+            const midY = currCenter.y + (nextCenter.y - currCenter.y) * frac;
+            
+            // Draw animated token on canvas (above snakes)
+            ctx.save();
+            ctx.shadowColor = "white";
+            ctx.shadowBlur = 10;
+            
+            // Token glow background
+            const gradient = ctx.createRadialGradient(midX, midY, 0, midX, midY, 25);
+            gradient.addColorStop(0, "rgba(255,255,255,0.8)");
+            gradient.addColorStop(1, "rgba(255,255,255,0)");
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(midX, midY, 25, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Main token
+            ctx.fillStyle = getPlayerColor(player.class);
+            ctx.beginPath();
+            ctx.arc(midX, midY, 12, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Border
+            ctx.strokeStyle = "black";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            ctx.restore();
+          }
+          
+          if (animProgress < 1) {
+            requestAnimationFrame(animate);
+          } else {
+            isAnimating = false;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);  // Clean up
+            drawSnakesAndLadders();  // Redraw snakes
+            document.querySelectorAll(`.token.${player.class}`).forEach(t => {
+              t.style.opacity = 1;
+            });
+            if (callback) callback();
+          }
+        }
+        requestAnimationFrame(animate);
+      }
+
+      // Helper for player colors
+      function getPlayerColor(className) {
+        const colors = {
+          'p1': 'red', 'p2': 'blue', 'p3': 'gold', 'p4': 'limegreen'
+        };
+        return colors[className] || 'orange';
+      }
+
+
+      function startGame() {
+        createBoard();
+
+        setTimeout(() => {
+          drawSnakesAndLadders();
+          animateBoard();
+        }, 500);
+
+
+        winnerBox.style.display = "none";
+
+        const mode = modeSelect.value;
+        const playerCount = parseInt(playersInput.value);
+
+        players = [];
+        currentPlayer = 0;
+
+        if (mode === "computer") {
+          players.push({ name: "You", pos: 0, class: "p1" });
+          players.push({ name: "Computer", pos: 0, class: "p2" });
+        } else {
+          if (playerCount < 2 || playerCount > 4) {
+            alert("Players must be between 2 and 4!");
+            return;
+          }
+
+          for (let i = 1; i <= playerCount; i++) {
+            players.push({ name: "Player " + i, pos: 0, class: "p" + i });
+          }
+        }
+
+        gameStarted = true;
+        rollBtn.disabled = false;
+        updateTokens();
+
+        statusBox.innerHTML = `<span class="turn">${players[currentPlayer].name}'s Turn</span>`;
+      }
+
+      function updateTokens() {
+        document.querySelectorAll(".token").forEach(t => t.remove());
+
+        players.forEach(player => {
+          if (player.pos > 0) {
+            const cell = document.getElementById("cell-" + player.pos);
+            if (cell) {
+              const token = document.createElement("div");
+              token.classList.add("token", player.class);
+              cell.appendChild(token);
+            }
+          }
+        });
+      }
+
+      function rollDice() {
+        if (!gameStarted || isAnimating) return;
+        
+        rollBtn.disabled = true;  // Prevent spam
+        
+        let roll = Math.floor(Math.random() * 6) + 1;
+        diceDisplay.textContent = "🎲 " + roll;
+        
+        let player = players[currentPlayer];
+        let targetPos = player.pos + roll;
+        
+        if (targetPos > 100) {
+          statusBox.innerHTML = `${player.name} needs exact roll to win!`;
+          setTimeout(nextTurn, 1500);
+          return;
+        }
+        
+        // Animate normal move first
+        animateMove(player, player.pos, targetPos, () => {
+          let finalPos = targetPos;
+          
+          // Check ladder
+          if (ladders[targetPos]) {
+            glowLadder(targetPos, ladders[targetPos]);
+            animateMove(player, targetPos, ladders[targetPos], () => {
+              finalPos = ladders[targetPos];
+              checkSnake(finalPos);
+            });
+            return;
+          }
+          
+          checkSnake(targetPos);
+          
+          function checkSnake(pos) {
+            if (snakes[pos]) {
+              setTimeout(() => {  // Snake slide delay
+                animateMove(player, pos, snakes[pos], finishTurn);
+              }, 500);
+            } else {
+              finishTurn();
+            }
+          }
+          
+          function finishTurn() {
+            player.pos = finalPos;
+            updateTokens();
+            
+            if (player.pos === 100) {
+              winnerBox.style.display = "block";
+              winnerBox.innerHTML = `🏆 ${player.name} Wins! 🎉`;
+              statusBox.innerHTML = `Game Over!`;
+              rollBtn.disabled = true;
+              return;
+            }
+            
+            nextTurn();
+          }
+        });
+      }
+  
+
+      function nextTurn() {
+        currentPlayer = (currentPlayer + 1) % players.length;
+        statusBox.innerHTML = `<span class="turn">${players[currentPlayer].name}'s Turn</span>`;
+        
+        rollBtn.disabled = false;
+        
+        if (players[currentPlayer].name === "Computer") {
+          setTimeout(() => {
+            if (!isAnimating) rollDice();
+          }, 1200);
+        }
+      }
+
+
+      function animateBoard() {
+        Object.keys(snakes).forEach(head => {
+          let s = snakeAnim[head];
+          if (!s) return;  // 🔥 SAFETY CHECK
+          
+          s.waveOffset += s.waveSpeed;
+          s.blinkState += s.blinkSpeed;
+          s.tongueState += s.tongueSpeed;
+
+          if (s.blinkState > 1) s.blinkState = 0;
+          if (s.tongueState > 1) s.tongueState = 0;
+        });
+
+        drawSnakesAndLadders();
+        animationFrame = requestAnimationFrame(animateBoard);
+      }
+
+      function glowLadder(start, end) {
+        const startCell = document.getElementById("cell-" + start);
+        const endCell = document.getElementById("cell-" + end);
+        if (startCell) startCell.classList.add("glow");
+        if (endCell) endCell.classList.add("glow");
+        
+        const ladderSound = document.getElementById("ladderSound");
+        if (ladderSound) {
+          ladderSound.currentTime = 0;
+          ladderSound.play().catch(() => {});  // Silent fail if no audio
+        }
+        
+        setTimeout(() => {
+          if (startCell) startCell.classList.remove("glow");
+          if (endCell) endCell.classList.remove("glow");
+        }, 1500);
+      }
+      function restartGame() {
+        cancelAnimationFrame(animationFrame);
+        currentPlayer = 0;  // 🔥 FIXED: was currentPlayerIndex
+        gameStarted = false;
+        isAnimating = false;
+        
+        if (players.length) {
+          players.forEach(p => p.pos = 0);
+        }
+        
+        rollBtn.disabled = true;
+        winnerBox.style.display = 'none';
+        statusBox.innerHTML = 'Game restarted!';
+        diceDisplay.textContent = '🎲';
+        
+        createBoard();
+        setTimeout(() => {
+          drawSnakesAndLadders();
+          animateBoard();
+          updateTokens();
+        }, 200);
+      }
+
+
+      createBoard();
+      // Initialize everything safely
+      createBoard();
+      setTimeout(() => {
+        drawSnakesAndLadders();
+        animateBoard();
+      }, 500);
+
+      document.getElementById("restartBtn").addEventListener("click", restartGame);
+
+
+
+    </script>
+    <audio id="ladderSound" preload="auto">
+    <source src="https://www.soundjay.com/misc/sounds/bell-ringing-05.wav" type="audio/wav">
+    </audio>
+  </body>
+  </html>
