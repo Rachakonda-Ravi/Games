@@ -1,0 +1,38 @@
+# ============================================================
+# Games repository - STRICT FILE WHITELIST
+#
+# Everything is ignored by default.
+# Only the explicitly listed files/directories are allowed.
+# ============================================================
+
+# Ignore everything
+/*
+
+# ------------------------------------------------------------
+# .gitignore
+# ------------------------------------------------------------
+!/.gitignore
+
+# ------------------------------------------------------------
+# GitHub Actions
+# ------------------------------------------------------------
+!/.github/workflows/deploy.yml
+
+# ------------------------------------------------------------
+# Images
+# ------------------------------------------------------------
+!/img/
+!/img/fireHallows.png
+!/img/iceHallows.png
+!/img/img.txt
+
+# ------------------------------------------------------------
+# Allowed root files
+# ------------------------------------------------------------
+
+!/AstaChamma.html
+!/index.html
+!/README.md
+!/S&L.html
+!/Tambola.html
+!/TicTacToe.html
