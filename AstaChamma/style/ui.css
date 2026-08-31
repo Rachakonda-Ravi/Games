@@ -1,0 +1,382 @@
+/* ============================================================
+   ASTACHAMMA — UI
+   ============================================================ */
+
+
+/* ============================================================
+   GLOBAL
+   ============================================================ */
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+
+    min-height: 100%;
+
+    font-family:
+        "Poppins",
+        "Segoe UI",
+        Arial,
+        sans-serif;
+
+    background:
+        radial-gradient(
+            circle at top,
+            #263238 0%,
+            #111 65%
+        );
+
+    color: #f5f5f5;
+}
+
+
+/* ============================================================
+   APPLICATION
+   ============================================================ */
+
+#app {
+    min-height: 100vh;
+
+    display: flex;
+    flex-direction: column;
+
+    align-items: center;
+
+    padding: 20px;
+}
+
+
+/* ============================================================
+   GAME CONTAINER
+   ============================================================ */
+
+#game-container {
+    position: relative;
+
+    width: 100%;
+    max-width: 900px;
+
+    display: flex;
+    flex-direction: column;
+
+    align-items: center;
+}
+
+
+/* ============================================================
+   CORE LABEL
+   ============================================================ */
+
+.core-label {
+
+    font-size: clamp(
+        11px,
+        2vw,
+        18px
+    );
+
+    font-weight: 700;
+
+    letter-spacing: 1px;
+
+    color: #fff4b0;
+
+    text-shadow:
+        0 1px 3px rgba(0, 0, 0, 0.7);
+
+    pointer-events: none;
+}
+
+
+/* ============================================================
+   DEVELOPMENT INFORMATION
+   ============================================================ */
+
+.engine-status {
+
+    width: min(
+        100%,
+        680px
+    );
+
+    margin-top: 15px;
+
+    padding: 10px 14px;
+
+    border-radius: 8px;
+
+    background:
+        rgba(0, 0, 0, 0.35);
+
+    border:
+        1px solid rgba(
+            255,
+            255,
+            255,
+            0.12
+        );
+
+    font-size: 12px;
+
+    color: rgba(
+        255,
+        255,
+        255,
+        0.65
+    );
+
+}
+
+
+/* ============================================================
+   BUTTON BASE
+   ============================================================ */
+
+button {
+
+    font-family: inherit;
+
+    border: none;
+
+    cursor: pointer;
+
+    user-select: none;
+
+    transition:
+        transform 0.15s ease,
+        opacity 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+
+button:hover {
+
+    transform:
+        translateY(-1px);
+
+}
+
+
+button:active {
+
+    transform:
+        translateY(1px);
+
+}
+
+
+button:disabled {
+
+    cursor: not-allowed;
+
+    opacity: 0.45;
+
+    transform: none;
+
+}
+
+
+/* ============================================================
+   GAME BUTTON
+   ============================================================ */
+
+.game-button {
+
+    min-height: 42px;
+
+    padding:
+        9px
+        18px;
+
+    border-radius: 9px;
+
+    background:
+        linear-gradient(
+            145deg,
+            #424242,
+            #222
+        );
+
+    color: #fff;
+
+    border:
+        1px solid rgba(
+            255,
+            255,
+            255,
+            0.18
+        );
+
+    box-shadow:
+        0 4px 10px
+        rgba(0, 0, 0, 0.3);
+
+}
+
+
+.game-button:hover {
+
+    box-shadow:
+        0 6px 14px
+        rgba(0, 0, 0, 0.4);
+
+}
+
+
+/* ============================================================
+   PRIMARY BUTTON
+   ============================================================ */
+
+.game-button.primary {
+
+    background:
+        linear-gradient(
+            145deg,
+            #c9a227,
+            #806313
+        );
+
+    color: #fff;
+
+    font-weight: 600;
+
+}
+
+
+/* ============================================================
+   PANELS
+   ============================================================ */
+
+.panel {
+
+    width: 100%;
+
+    padding: 16px;
+
+    border-radius: 12px;
+
+    background:
+        rgba(20, 20, 20, 0.78);
+
+    border:
+        1px solid rgba(
+            255,
+            255,
+            255,
+            0.12
+        );
+
+    box-shadow:
+        0 8px 25px
+        rgba(0, 0, 0, 0.3);
+
+}
+
+
+/* ============================================================
+   PANEL TITLE
+   ============================================================ */
+
+.panel-title {
+
+    margin: 0 0 10px;
+
+    font-size: 16px;
+
+    font-weight: 600;
+
+}
+
+
+/* ============================================================
+   STATUS MESSAGE
+   ============================================================ */
+
+.status-message {
+
+    min-height: 24px;
+
+    text-align: center;
+
+    font-size: 14px;
+
+    color:
+        rgba(
+            255,
+            255,
+            255,
+            0.8
+        );
+
+}
+
+
+/* ============================================================
+   PLAYER INDICATOR
+   ============================================================ */
+
+.player-indicator {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    font-weight: 600;
+
+}
+
+
+.player-indicator::before {
+
+    content: "";
+
+    width: 11px;
+    height: 11px;
+
+    border-radius: 50%;
+
+    background: currentColor;
+
+}
+
+
+/* ============================================================
+   RESPONSIVE UI
+   ============================================================ */
+
+@media (max-width: 600px) {
+
+    #app {
+
+        padding: 10px;
+
+    }
+
+
+    .panel {
+
+        padding: 12px;
+
+    }
+
+
+    .game-button {
+
+        min-height: 40px;
+
+        padding:
+            8px
+            14px;
+
+        font-size: 13px;
+
+    }
+
+}

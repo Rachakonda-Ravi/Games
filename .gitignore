@@ -1,33 +1,22 @@
-#============================================================
-# Ignore everything
-#============================================================
-/*
+# Ignore everything by default
+*
 
-# ------------------------------------------------------------
-# .gitignore
-# ------------------------------------------------------------
-!/.gitignore
+# But allow these folders (and their contents)
+!AstaChamma/
+!AstaChamma/**
+!img/
+!img/**
 
-# ------------------------------------------------------------
-# GitHub Actions
-# ------------------------------------------------------------
-!/.github/workflows/deploy.yml
+# Allow GitHub Actions workflow
+!.github/
+!.github/workflows/
+!.github/workflows/deploy.yml
 
-# ------------------------------------------------------------
-# Images
-# ------------------------------------------------------------
-!/img/
-!/img/fireHallows.png
-!/img/iceHallows.png
-!/img/img.txt
-
-# ------------------------------------------------------------
-# Allowed root files
-# ------------------------------------------------------------
-
-!/AstaChamma.html
-!/index.html
-!/README.md
-!/S&L.html
-!/Tambola.html
-!/TicTacToe.html
+# Allow these specific files at root
+!.gitignore
+!AstaChamma.html
+!index.html
+!README.md
+!S&L.html
+!Tambola.html
+!TicTacToe.html

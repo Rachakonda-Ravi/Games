@@ -1,0 +1,400 @@
+/* ============================================================
+   ASTACHAMMA — BOARD
+   Physical 5 × 5 board
+   ============================================================ */
+
+:root {
+    --board-size: min(88vw, 680px);
+    --cell-size: calc(var(--board-size) / 5);
+
+    --board-bg: #151515;
+    --cell-bg: #242424;
+    --cell-border: rgba(255, 255, 255, 0.18);
+
+    --core-bg: #c9a227;
+
+    --red: #d94a4a;
+    --blue: #4b82d9;
+    --green: #4da85b;
+    --yellow: #d9b43f;
+}
+
+
+/* ============================================================
+   BOARD CONTAINER
+   ============================================================ */
+
+#game-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+    box-sizing: border-box;
+}
+
+
+/* ============================================================
+   BOARD
+   ============================================================ */
+
+.astachamma-board {
+
+    width: var(--board-size);
+    height: var(--board-size);
+
+    display: grid;
+
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(5, 1fr);
+
+    background: var(--board-bg);
+
+    border: 3px solid rgba(255, 255, 255, 0.3);
+
+    border-radius: 12px;
+
+    overflow: hidden;
+
+    box-shadow:
+        0 12px 35px rgba(0, 0, 0, 0.45);
+
+}
+
+
+/* ============================================================
+   BOARD CELLS
+   ============================================================ */
+
+.board-cell {
+
+    position: relative;
+
+    min-width: 0;
+    min-height: 0;
+
+    display: flex;
+
+    justify-content: center;
+    align-items: center;
+
+    box-sizing: border-box;
+
+    background: var(--cell-bg);
+
+    border: 1px solid var(--cell-border);
+
+    user-select: none;
+}
+
+
+/* ============================================================
+   OUTER PATH
+   ============================================================ */
+
+.board-cell.outer {
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(255, 255, 255, 0.04),
+            rgba(0, 0, 0, 0.08)
+        );
+
+}
+
+
+/* ============================================================
+   INNER PATH
+   ============================================================ */
+
+.board-cell.inner {
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(255, 255, 255, 0.07),
+            rgba(0, 0, 0, 0.12)
+        );
+
+}
+
+
+/* ============================================================
+   CORE
+   ============================================================ */
+
+.board-cell.core {
+
+    background:
+        radial-gradient(
+            circle,
+            #e6c85c 0%,
+            var(--core-bg) 55%,
+            #806313 100%
+        );
+
+    border: 2px solid rgba(255, 235, 150, 0.7);
+
+}
+
+
+/* ============================================================
+   INTERNAL POSITION MARKER
+
+   Development only.
+
+   These numbers can be hidden by adding:
+       .hide-board-debug
+   to the board.
+   ============================================================ */
+
+.board-cell-debug {
+
+    position: absolute;
+
+    top: 4px;
+    left: 6px;
+
+    font-size: 10px;
+
+    opacity: 0.45;
+
+    pointer-events: none;
+
+}
+
+
+.astachamma-board.hide-board-debug
+.board-cell-debug {
+
+    display: none;
+
+}
+
+
+/* ============================================================
+   PLAYER START CELLS
+   ============================================================ */
+
+.board-cell.start-red {
+    box-shadow:
+        inset 0 0 0 3px var(--red);
+}
+
+.board-cell.start-blue {
+    box-shadow:
+        inset 0 0 0 3px var(--blue);
+}
+
+.board-cell.start-green {
+    box-shadow:
+        inset 0 0 0 3px var(--green);
+}
+
+.board-cell.start-yellow {
+    box-shadow:
+        inset 0 0 0 3px var(--yellow);
+}
+
+
+/* ============================================================
+   SAFE CELLS
+   ============================================================ */
+
+.board-cell.safe {
+
+    background:
+        radial-gradient(
+            circle,
+            rgba(70, 180, 100, 0.35),
+            rgba(30, 100, 55, 0.18)
+        );
+
+}
+
+
+/* ============================================================
+   PIECE CONTAINER
+   ============================================================ */
+
+.board-pieces {
+
+    width: 88%;
+    height: 88%;
+
+    display: flex;
+
+    justify-content: center;
+    align-items: center;
+
+    flex-wrap: wrap;
+
+    gap: 3px;
+
+}
+
+
+/* ============================================================
+   PIECES
+   ============================================================ */
+
+.game-piece {
+
+    width: 28%;
+    aspect-ratio: 1;
+
+    border-radius: 50%;
+
+    box-sizing: border-box;
+
+    border: 2px solid rgba(255, 255, 255, 0.7);
+
+    box-shadow:
+        0 3px 7px rgba(0, 0, 0, 0.45);
+
+}
+
+
+/* ============================================================
+   PIECE COLORS
+   ============================================================ */
+
+.game-piece.red {
+    background: var(--red);
+}
+
+.game-piece.blue {
+    background: var(--blue);
+}
+
+.game-piece.green {
+    background: var(--green);
+}
+
+.game-piece.yellow {
+    background: var(--yellow);
+}
+
+
+/* ============================================================
+   RESPONSIVE BOARD
+   ============================================================ */
+
+@media (max-width: 600px) {
+
+    :root {
+        --board-size: min(94vw, 520px);
+    }
+
+    #game-container {
+        padding: 10px;
+    }
+
+    .astachamma-board {
+        border-width: 2px;
+        border-radius: 8px;
+    }
+
+}
+
+
+@media (max-height: 650px) and (orientation: landscape) {
+
+    :root {
+        --board-size: min(82vh, 520px);
+    }
+
+    #game-container {
+        padding: 8px;
+    }
+
+}
+
+/* ============================================================
+   PLAYER ROUTE VISUALIZATION
+   Development / route-debug layer
+   ============================================================ */
+
+.route-overlay {
+    position: absolute;
+    inset: 0;
+
+    pointer-events: none;
+
+    border-radius: inherit;
+}
+
+
+/* A cell can belong to several players' routes.
+   Keep the route markings subtle so the board remains readable. */
+
+.board-cell.route-red {
+    box-shadow:
+        inset 0 0 0 2px rgba(217, 74, 74, 0.65);
+}
+
+.board-cell.route-blue {
+    box-shadow:
+        inset 0 0 0 2px rgba(75, 130, 217, 0.65);
+}
+
+.board-cell.route-green {
+    box-shadow:
+        inset 0 0 0 2px rgba(77, 168, 91, 0.65);
+}
+
+.board-cell.route-yellow {
+    box-shadow:
+        inset 0 0 0 2px rgba(217, 180, 63, 0.65);
+}
+
+
+/* ------------------------------------------------------------
+   Route direction marker
+   ------------------------------------------------------------ */
+
+.route-marker {
+    position: absolute;
+
+    width: 12px;
+    height: 12px;
+
+    border-radius: 50%;
+
+    opacity: 0.8;
+
+    pointer-events: none;
+}
+
+.route-marker.red {
+    background: var(--red);
+}
+
+.route-marker.blue {
+    background: var(--blue);
+}
+
+.route-marker.green {
+    background: var(--green);
+}
+
+.route-marker.yellow {
+    background: var(--yellow);
+}
+
+
+/* ------------------------------------------------------------
+   Route-debug mode
+   ------------------------------------------------------------ */
+
+.astachamma-board.route-debug .board-cell {
+    transition:
+        box-shadow 0.2s ease,
+        background 0.2s ease;
+}
+
+.astachamma-board.route-debug .board-cell-debug {
+    display: block;
+    opacity: 0.8;
+}
