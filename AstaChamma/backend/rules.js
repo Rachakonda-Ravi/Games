@@ -371,7 +371,9 @@ function canSplitRoll(
     roll
 ) {
 
-    return roll === 8;
+    return (
+        roll === 8
+    );
 
 }
 
@@ -411,9 +413,7 @@ function getSplitRoll(
            up to 2 pieces may initially enter.
 
        Roll 8:
-           all pieces may initially enter.
-
-   This function only determines the capacity.
+           up to 4 pieces may initially enter.
 
    ============================================================ */
 
@@ -612,8 +612,11 @@ function isValidLogicalPosition(
 
    Exception:
 
-   If no opponent pieces remain outside Core,
-   Core entry is allowed.
+   Core entry is also permitted when no opponent piece
+   remains outside Core.
+
+   A captured/inactive piece is NOT an opponent piece
+   remaining outside Core because it is no longer on the board.
 
    ============================================================ */
 
@@ -636,6 +639,10 @@ function hasCapturePermission(
 
 }
 
+
+/* ============================================================
+   13. OPPONENT CORE EXCEPTION
+   ============================================================ */
 
 function areAllOpponentsInCore(
     state,
@@ -686,28 +693,33 @@ function areAllOpponentsInCore(
 
 
         /*
-         * An opponent piece is outside Core if:
+         * Only pieces that are still on the board
+         * can prevent the Core exception.
          *
-         * - it is active and not in Core
-         * - or it has never been activated
-         * - or it is inactive/captured
+         * Therefore:
          *
-         * Therefore, simply checking corePieces is not enough.
+         * ACTIVE + not Core
+         *     → still outside Core
          *
-         * A piece is considered remaining outside Core if
-         * it has not reached Core.
+         * ACTIVE + Core
+         *     → already in Core
+         *
+         * INACTIVE
+         *     → captured, no longer on board
+         *
+         * NEVER_ACTIVATED
+         *     → has not entered the board
+         *
+         * Neither INACTIVE nor NEVER_ACTIVATED counts
+         * as an opponent piece remaining outside Core.
          */
 
         const outsideCore =
             opponent.pieces.some(
                 piece =>
-                    !(
-                        piece.status ===
-                            RULES_STATUS.ACTIVE
-                        &&
-                        piece.position ===
-                            RULES_CORE_POSITION
-                    )
+                    isActive(piece) &&
+                    piece.position !==
+                        RULES_CORE_POSITION
             );
 
 
@@ -726,6 +738,10 @@ function areAllOpponentsInCore(
 
 }
 
+
+/* ============================================================
+   14. PLAYER CORE PERMISSION
+   ============================================================ */
 
 function canPlayerEnterCore(
     state,
@@ -783,13 +799,7 @@ function canPlayerEnterCore(
 
 
 /* ============================================================
-   13. CORE MOVE PERMISSION
-   ============================================================
-
-   The actual route calculation is handled by gameplay.js.
-
-   This function only checks the special Core requirement.
-
+   15. CORE MOVE PERMISSION
    ============================================================ */
 
 function canEnterCore(
@@ -817,7 +827,7 @@ function canEnterCore(
 
 
 /* ============================================================
-   14. BASIC MOVE VALIDATION
+   16. BASIC MOVE VALIDATION
    ============================================================ */
 
 function canMovePiece(
@@ -916,14 +926,7 @@ function canMovePiece(
 
 
 /* ============================================================
-   15. OVERSHOOT CHECK
-   ============================================================
-
-   The route engine supplies the actual logical route.
-
-   This generic helper prevents a move from exceeding
-   the requested route destination.
-
+   17. OVERSHOOT CHECK
    ============================================================ */
 
 function isMoveWithinRoute(
@@ -973,7 +976,7 @@ function isMoveWithinRoute(
 
 
 /* ============================================================
-   16. DESTINATION CHECK
+   18. DESTINATION CHECK
    ============================================================ */
 
 function canReachDestination(
@@ -1044,15 +1047,15 @@ function canReachDestination(
 
 
 /* ============================================================
-   17. SAFE-ZONE CAPTURE RULE
+   19. SAFE-ZONE CAPTURE RULE
    ============================================================
 
    Safe-zone elimination is not permitted.
 
-   gameplay.js may identify safe positions.
+   gameplay.js identifies the actual position.
 
-   This rule helper accepts that information rather than
-   hard-coding physical board coordinates here.
+   This function receives the result rather than owning
+   board geometry.
 
    ============================================================ */
 
@@ -1060,98 +1063,22 @@ function canCaptureOnPosition(
     isSafePosition
 ) {
 
-    /*
-     * Safe position:
-     * capture is prohibited.
-     */
-
-    if (
-        isSafePosition === true
-    ) {
-
-        return false;
-
-    }
-
-
-    return true;
+    return (
+        !Boolean(
+            isSafePosition
+        )
+    );
 
 }
 
 
 /* ============================================================
-   18. SAME-CELL / OCCUPANCY RULE
+   20. CAPTURE TYPE RULE
    ============================================================
 
-   Normal route positions:
-       Two pieces may not occupy the same square.
+   Knight kills Knight only.
 
-   Base / Safe positions:
-       handled by gameplay/core occupancy logic.
-
-   Core:
-       pieces reaching Core are removed from the board.
-
-   ============================================================ */
-
-function canSharePosition(
-    position,
-    isBase,
-    isSafe,
-    isCore
-) {
-
-    /*
-     * Core is not an ordinary board square.
-     */
-
-    if (
-        isCore === true
-    ) {
-
-        return false;
-
-    }
-
-
-    /*
-     * Base and Safe are allowed to contain multiple pieces.
-     */
-
-    if (
-        isBase === true ||
-        isSafe === true
-    ) {
-
-        return true;
-
-    }
-
-
-    /*
-     * Normal route square.
-     */
-
-    return false;
-
-}
-
-
-/* ============================================================
-   19. CAPTURE COMPATIBILITY
-   ============================================================
-
-   Original game rule:
-
-       Knight kills Knight.
-       King kills King.
-
-   Therefore:
-
-       Knight × Knight → allowed
-       Knight × King   → prohibited
-       King × Knight   → prohibited
-       King × King     → allowed
+   King kills King only.
 
    ============================================================ */
 
@@ -1180,20 +1107,37 @@ function canPieceCapture(
     }
 
 
-    /*
-     * Same type only.
-     */
+    if (
+        isKnight(attacker) &&
+        isKnight(defender)
+    ) {
 
-    return (
-        attacker.type ===
-        defender.type
-    );
+        return true;
+
+    }
+
+
+    if (
+        isKing(attacker) &&
+        isKing(defender)
+    ) {
+
+        return true;
+
+    }
+
+
+    return false;
 
 }
 
 
 /* ============================================================
-   20. PLAYER CANNOT CAPTURE SELF
+   21. SAME-PLAYER CAPTURE PROTECTION
+   ============================================================
+
+   A player can never capture their own piece.
+
    ============================================================ */
 
 function canCaptureOpponent(
@@ -1204,8 +1148,7 @@ function canCaptureOpponent(
     if (
         !isValidPlayer(
             attackerPlayerColor
-        )
-        ||
+        ) ||
         !isValidPlayer(
             defenderPlayerColor
         )
@@ -1225,7 +1168,7 @@ function canCaptureOpponent(
 
 
 /* ============================================================
-   21. COMBINED CAPTURE VALIDATION
+   22. COMPLETE CAPTURE VALIDATION
    ============================================================ */
 
 function canCapture(
@@ -1233,7 +1176,7 @@ function canCapture(
     attacker,
     defenderPlayerColor,
     defender,
-    isSafePosition = false
+    isSafePosition
 ) {
 
     if (
@@ -1268,446 +1211,35 @@ function canCapture(
 
 
 /* ============================================================
-   22. INITIAL ENTRY POSITION
+   23. CORE REACH VALIDATION
    ============================================================
 
-   The actual physical board location of a player's starting
-   point belongs to gameplay.js.
+   This helper combines:
 
-   State stores logical position.
+       - valid destination
+       - route overshoot
+       - Core permission
 
-   This helper merely verifies that an entry position is valid.
-
-   ============================================================ */
-
-function isValidEntryPosition(
-    position
-) {
-
-    return isRoutePosition(
-        position
-    );
-
-}
-
-
-/* ============================================================
-   23. VICTORY
-   ============================================================ */
-
-function hasPlayerWon(
-    player
-) {
-
-    if (!player) {
-        return false;
-    }
-
-
-    if (
-        !Array.isArray(
-            player.pieces
-        )
-    ) {
-
-        return false;
-
-    }
-
-
-    /*
-     * All four pieces must actually be in Core.
-     */
-
-    return (
-        player.pieces.length > 0
-        &&
-        player.pieces.every(
-            piece =>
-                piece.status ===
-                    RULES_STATUS.ACTIVE
-                &&
-                piece.position ===
-                    RULES_CORE_POSITION
-        )
-    );
-
-}
-
-
-/* ============================================================
-   24. GAME OVER
-   ============================================================ */
-
-function getWinner(
-    state
-) {
-
-    if (
-        !state ||
-        !state.players
-    ) {
-
-        return null;
-
-    }
-
-
-    for (
-        const color of RULES_PLAYERS
-    ) {
-
-        if (
-            hasPlayerWon(
-                state.players[color]
-            )
-        ) {
-
-            return color;
-
-        }
-
-    }
-
-
-    return null;
-
-}
-
-
-function isGameOver(
-    state
-) {
-
-    return (
-        getWinner(
-            state
-        ) !== null
-    );
-
-}
-
-
-/* ============================================================
-   25. ROLL ASSIGNMENT
-   ============================================================
-
-   Determines whether a roll can be assigned to a piece.
-
-   This does not execute the movement.
+   The actual route index is supplied by gameplay.js.
 
    ============================================================ */
 
-function canAssignRollToPiece(
-    piece,
-    roll
-) {
-
-    if (
-        !piece ||
-        !isValidRoll(roll)
-    ) {
-
-        return false;
-
-    }
-
-
-    /*
-     * Never-activated pieces are handled by the initial
-     * activation rule rather than normal movement.
-     */
-
-    if (
-        isNeverActivated(
-            piece
-        )
-    ) {
-
-        return canInitialActivatePiece(
-            piece,
-            roll
-        );
-
-    }
-
-
-    /*
-     * Captured pieces are handled by comeback rule.
-
-     */
-
-    if (
-        isInactive(
-            piece
-        )
-    ) {
-
-        return canPieceComeback(
-            piece,
-            roll
-        );
-
-    }
-
-
-    /*
-     * Active pieces use movement rules.
-     */
-
-    return canPieceUseRoll(
-        piece,
-        roll
-    );
-
-}
-
-
-/* ============================================================
-   26. GET LEGAL ACTION TYPE
-   ============================================================ */
-
-function getPieceActionType(
-    piece,
-    roll
-) {
-
-    if (
-        !piece ||
-        !isValidRoll(
-            roll
-        )
-    ) {
-
-        return null;
-
-    }
-
-
-    if (
-        isNeverActivated(
-            piece
-        )
-    ) {
-
-        if (
-            canInitialActivatePiece(
-                piece,
-                roll
-            )
-        ) {
-
-            return "initial-entry";
-
-        }
-
-        return null;
-
-    }
-
-
-    if (
-        isInactive(
-            piece
-        )
-    ) {
-
-        if (
-            canPieceComeback(
-                piece,
-                roll
-            )
-        ) {
-
-            return "comeback";
-
-        }
-
-        return null;
-
-    }
-
-
-    if (
-        isActive(
-            piece
-        )
-    ) {
-
-        if (
-            canPieceUseRoll(
-                piece,
-                roll
-            )
-        ) {
-
-            return "move";
-
-        }
-
-    }
-
-
-    return null;
-
-}
-
-
-/* ============================================================
-   27. GET LEGAL PIECES
-   ============================================================ */
-
-function getLegalPieces(
-    player,
-    roll
-) {
-
-    if (
-        !player ||
-        !Array.isArray(
-            player.pieces
-        )
-        ||
-        !isValidRoll(
-            roll
-        )
-    ) {
-
-        return [];
-
-    }
-
-
-    return player.pieces.filter(
-        piece =>
-            canAssignRollToPiece(
-                piece,
-                roll
-            )
-    );
-
-}
-
-
-/* ============================================================
-   28. GET MOVEMENT INFORMATION
-   ============================================================ */
-
-function getMoveInformation(
-    piece,
-    roll
-) {
-
-    if (
-        !piece ||
-        !isValidRoll(
-            roll
-        )
-    ) {
-
-        return null;
-
-    }
-
-
-    const action =
-        getPieceActionType(
-            piece,
-            roll
-        );
-
-
-    if (!action) {
-
-        return null;
-
-    }
-
-
-    return {
-
-        pieceId:
-            piece.id,
-
-        pieceType:
-            piece.type,
-
-        roll,
-
-        action,
-
-        movementDistance:
-            action === "move"
-                ? getMovementDistance(
-                    piece,
-                    roll
-                )
-                : 0
-
-    };
-
-}
-
-
-/* ============================================================
-   29. COMPLETE MOVE VALIDATION
-   ============================================================ */
-
-function validateMove(
+function canReachLogicalDestination(
     state,
     playerColor,
-    piece,
-    roll,
+    route,
+    currentIndex,
+    movementDistance,
     destination
 ) {
 
     if (
-        !state ||
         !isValidPlayer(
             playerColor
         )
     ) {
 
-        return {
-
-            valid: false,
-
-            reason:
-                "Invalid game state or player."
-
-        };
-
-    }
-
-
-    if (!piece) {
-
-        return {
-
-            valid: false,
-
-            reason:
-                "Piece does not exist."
-
-        };
-
-    }
-
-
-    if (
-        !isValidRoll(
-            roll
-        )
-    ) {
-
-        return {
-
-            valid: false,
-
-            reason:
-                "Invalid roll."
-
-        };
+        return false;
 
     }
 
@@ -1718,213 +1250,384 @@ function validateMove(
         )
     ) {
 
-        return {
-
-            valid: false,
-
-            reason:
-                "Invalid destination."
-
-        };
+        return false;
 
     }
 
 
     if (
-        !isActive(
-            piece
+        !canReachDestination(
+            route,
+            currentIndex,
+            movementDistance
         )
     ) {
 
-        return {
-
-            valid: false,
-
-            reason:
-                "Piece is not active."
-
-        };
+        return false;
 
     }
 
 
-    if (
-        !canPieceUseRoll(
-            piece,
-            roll
-        )
-    ) {
-
-        return {
-
-            valid: false,
-
-            reason:
-                piece.type ===
-                    RULES_PIECE_TYPES.KING
-                    ? "King can only use even rolls."
-                    : "Piece cannot use this roll."
-
-        };
-
-    }
-
-
-    if (
-        !canEnterCore(
-            state,
-            playerColor,
-            destination
-        )
-    ) {
-
-        return {
-
-            valid: false,
-
-            reason:
-                "Core entry is not permitted yet."
-
-        };
-
-    }
-
-
-    return {
-
-        valid: true,
-
-        reason: null,
-
-        distance:
-            getMovementDistance(
-                piece,
-                roll
-            )
-
-    };
+    return canEnterCore(
+        state,
+        playerColor,
+        destination
+    );
 
 }
 
 
 /* ============================================================
-   30. PUBLIC API
+   24. INNER-AREA ENTRY HELPER
+   ============================================================
+
+   The actual player-specific inner route is owned by
+   gameplay.js.
+
+   This rule only checks the permission condition.
+
+   A player may enter the inner area when:
+
+       1. the player has captured an opponent
+          OR
+       2. all opponents have no piece remaining in
+          the player's relevant area.
+
+   The second condition is supplied by the caller because
+   "player's area" is route/geometry information.
+
    ============================================================ */
 
-window.AstaChammaRules =
-    Object.freeze({
+function canEnterInnerArea(
+    hasCapture,
+    allOpponentsOutOfPlayerArea
+) {
 
-        PLAYERS:
-            RULES_PLAYERS,
+    return (
+        Boolean(hasCapture) ||
+        Boolean(allOpponentsOutOfPlayerArea)
+    );
 
-        PIECE_TYPES:
-            RULES_PIECE_TYPES,
-
-        PIECE_STATUS:
-            RULES_STATUS,
-
-        CORE_POSITION:
-            RULES_CORE_POSITION,
+}
 
 
-        isValidPlayer,
+/* ============================================================
+   25. TURN TOTAL VALIDATION
+   ============================================================
 
-        isValidPieceType,
+   Maximum accumulated value for one turn:
 
-        isValidStatus,
+       32
 
-        isValidRoll,
+   ============================================================ */
 
+function isValidTurnTotal(
+    currentTotal,
+    additionalValue
+) {
 
-        isKnight,
+    if (
+        !Number.isInteger(
+            currentTotal
+        ) ||
+        !Number.isInteger(
+            additionalValue
+        )
+    ) {
 
-        isKing,
+        return false;
 
-
-        isNeverActivated,
-
-        isInactive,
-
-        isActive,
-
-
-        canKnightUseRoll,
-
-        canKingUseRoll,
-
-        getMovementDistance,
-
-        canPieceUseRoll,
-
-
-        canSplitRoll,
-
-        getSplitRoll,
+    }
 
 
-        getInitialEntryCapacity,
+    if (
+        currentTotal < 0 ||
+        additionalValue < 0
+    ) {
 
-        canInitialActivatePiece,
+        return false;
 
-
-        getComebackRoll,
-
-        canPieceComeback,
-
-
-        isRoutePosition,
-
-        isCorePosition,
-
-        isValidLogicalPosition,
+    }
 
 
-        hasCapturePermission,
+    return (
+        currentTotal +
+        additionalValue
+        <=
+        32
+    );
 
-        areAllOpponentsInCore,
-
-        canPlayerEnterCore,
-
-        canEnterCore,
-
-
-        canMovePiece,
-
-        isMoveWithinRoute,
-
-        canReachDestination,
+}
 
 
-        canCaptureOnPosition,
+/* ============================================================
+   26. THREE-EIGHTS CANCELLATION
+   ============================================================
 
-        canSharePosition,
+   8 + 8 + 8 + 3
+
+   cancels the entire turn.
+
+   ============================================================ */
+
+function isTeenTigada(
+    rolls
+) {
+
+    if (
+        !Array.isArray(
+            rolls
+        )
+    ) {
+
+        return false;
+
+    }
 
 
-        canPieceCapture,
+    if (
+        rolls.length < 4
+    ) {
 
-        canCaptureOpponent,
+        return false;
 
-        canCapture,
-
-
-        isValidEntryPosition,
-
-
-        hasPlayerWon,
-
-        getWinner,
-
-        isGameOver,
+    }
 
 
-        canAssignRollToPiece,
+    const lastFour =
+        rolls.slice(
+            -4
+        );
 
-        getPieceActionType,
 
-        getLegalPieces,
+    return (
+        lastFour[0] === 8 &&
+        lastFour[1] === 8 &&
+        lastFour[2] === 8 &&
+        lastFour[3] === 3
+    );
 
-        getMoveInformation,
+}
 
-        validateMove
 
-    });
+/* ============================================================
+   27. SPLIT VALIDATION
+   ============================================================ */
+
+function canUseSplitChunk(
+    originalRoll,
+    chunk
+) {
+
+    if (
+        !canSplitRoll(
+            originalRoll
+        )
+    ) {
+
+        return false;
+
+    }
+
+
+    return (
+        chunk === 4
+    );
+
+}
+
+
+/* ============================================================
+   28. NO-WASTE VALIDATION
+   ============================================================
+
+   A turn cannot be completed by silently throwing away
+   an unusable remainder.
+
+   ============================================================ */
+
+function canFullyAssignScore(
+    remainingScore,
+    legalAssignments
+) {
+
+    if (
+        !Number.isInteger(
+            remainingScore
+        ) ||
+        remainingScore < 0
+    ) {
+
+        return false;
+
+    }
+
+
+    if (
+        remainingScore === 0
+    ) {
+
+        return true;
+
+    }
+
+
+    if (
+        !Array.isArray(
+            legalAssignments
+        )
+    ) {
+
+        return false;
+
+    }
+
+
+    /*
+     * Each assignment represents a legal chunk that can
+     * consume part of the remaining score.
+     *
+     * This small dynamic-programming implementation prevents
+     * an unusable remainder from being silently discarded.
+     */
+
+    const reachable =
+        new Set([
+            0
+        ]);
+
+
+    for (
+        const value of legalAssignments
+    ) {
+
+        if (
+            !Number.isInteger(value) ||
+            value <= 0
+        ) {
+
+            continue;
+
+        }
+
+
+        const previous =
+            Array.from(
+                reachable
+            );
+
+
+        for (
+            const total of previous
+        ) {
+
+            const next =
+                total + value;
+
+
+            if (
+                next <=
+                remainingScore
+            ) {
+
+                reachable.add(
+                    next
+                );
+
+            }
+
+        }
+
+    }
+
+
+    return reachable.has(
+        remainingScore
+    );
+
+}
+
+
+/* ============================================================
+   29. PUBLIC API
+   ============================================================ */
+
+window.AstaChammaRules = Object.freeze({
+
+    /* Constants */
+    PLAYERS:
+        RULES_PLAYERS,
+
+    PIECE_TYPES:
+        RULES_PIECE_TYPES,
+
+    STATUS:
+        RULES_STATUS,
+
+    CORE_POSITION:
+        RULES_CORE_POSITION,
+
+    /* Validation */
+    isValidPlayer,
+    isValidPieceType,
+    isValidStatus,
+    isValidRoll,
+
+    /* Piece type */
+    isKnight,
+    isKing,
+
+    /* Piece status */
+    isNeverActivated,
+    isInactive,
+    isActive,
+
+    /* Movement */
+    canKingUseRoll,
+    canKnightUseRoll,
+    getMovementDistance,
+    canPieceUseRoll,
+    canMovePiece,
+
+    /* Split */
+    canSplitRoll,
+    getSplitRoll,
+    canUseSplitChunk,
+
+    /* Initial entry */
+    getInitialEntryCapacity,
+    canInitialActivatePiece,
+
+    /* Comeback */
+    getComebackRoll,
+    canPieceComeback,
+
+    /* Positions */
+    isRoutePosition,
+    isCorePosition,
+    isValidLogicalPosition,
+    isMoveWithinRoute,
+    canReachDestination,
+    canReachLogicalDestination,
+
+    /* Core */
+    hasCapturePermission,
+    areAllOpponentsInCore,
+    canPlayerEnterCore,
+    canEnterCore,
+
+    /* Inner area */
+    canEnterInnerArea,
+
+    /* Capture */
+    canCaptureOnPosition,
+    canPieceCapture,
+    canCaptureOpponent,
+    canCapture,
+
+    /* Turn rules */
+    isValidTurnTotal,
+    isTeenTigada,
+    canFullyAssignScore
+
+});
